@@ -1,0 +1,27 @@
+{
+  "name": "redis-parser",
+  "version": "0.0.1",
+  "description": "Javascript Redis protocol (RESP) parser",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NodeRedis/node-redis-parser.git"
+  },
+  "keywords": [
+    "redis",
+    "protocol",
+    "parser",
+    "database",
+    "javascript",
+    "node"
+  ],
+  "author": "Ruben Bridgewater",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/NodeRedis/node-redis-parser/issues"
+  },
+  "homepage": "https://github.com/NodeRedis/node-redis-parser#readme"
+}
