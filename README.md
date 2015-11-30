@@ -29,7 +29,6 @@ new Parser(options);
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
 * `name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available
-* `context`: *A class instance that the return functions get bound to*; optional
 
 ### Example
 
@@ -45,10 +44,15 @@ Library.prototype.returnFatalError = function (err) { ... }
 var lib = new Library();
 
 var parser = new Parser({
-    returnReply: returnReply,
-    returnError: returnError,
-    returnFatalError: returnFatalError,
-    context: lib
+    returnReply: function(reply) {
+        lib.returnReply(reply);
+    },
+    returnError: function(err) {
+        lib.returnError(err);
+    },
+    returnFatalError: function (err) {
+        lib.returnFatalError(err);
+    }
 }); // This returns either a hiredis or the js parser instance depending on what's available
 
 Library.prototype.streamHandler = function () {
@@ -58,7 +62,7 @@ Library.prototype.streamHandler = function () {
     });
 };
 ```
-You do not have to use the context variable, but can also bind the function while passing them to the option object.
+You do not have to use the returnFatalError function. Fatal errors will be returned in the normal error function in that case.
 
 And if you want to return buffers instead of strings, you can do this by adding the returnBuffers option.
 
@@ -66,9 +70,12 @@ And if you want to return buffers instead of strings, you can do this by adding 
 // Same functions as in the first example
 
 var parser = new Parser({
-    returnReply: returnReply.bind(lib),
-    returnError: returnError.bind(lib),
-    returnFatalError: returnFatalError.bind(lib),
+    returnReply: function(reply) {
+        lib.returnReply(reply);
+    },
+    returnError: function(err) {
+        lib.returnError(err);
+    },
     returnBuffers: true // All strings are returned as buffer e.g. <Buffer 48 65 6c 6c 6f>
 });
 

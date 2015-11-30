@@ -49,11 +49,12 @@ describe('parsers', function () {
                 Abc.prototype.log = console.log;
                 var test = new Abc();
                 var parser = new Parser({
-                    returnReply: test.checkReply,
+                    returnReply: function (reply) {
+                        test.checkReply(reply);
+                    },
                     returnError: returnError,
                     returnFatalError: returnFatalError,
-                    name: parserName,
-                    context: test
+                    name: parserName
                 });
 
                 parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na\r\n'));
@@ -82,7 +83,9 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: returnReply,
                     returnError: returnError,
-                    returnFatalError: test.checkReply.bind(test),
+                    returnFatalError: function (err) {
+                        test.checkReply(err);
+                    },
                     name: parserName
                 });
 
