@@ -1,8 +1,12 @@
-[![Build Status](https://travis-ci.org/NodeRedis/redis-parser.png?branch=master)](https://travis-ci.org/NodeRedis/redis-parser)
+[![Build Status](https://travis-ci.org/NodeRedis/node-redis-parser.png?branch=master)](https://travis-ci.org/NodeRedis/node-redis-parser)
+[![Code Climate](https://codeclimate.com/github/NodeRedis/node-redis-parser/badges/gpa.svg)](https://codeclimate.com/github/NodeRedis/node-redis-parser)
+[![Test Coverage](https://codeclimate.com/github/NodeRedis/node-redis-parser/badges/coverage.svg)](https://codeclimate.com/github/NodeRedis/node-redis-parser/coverage)
 
 # redis-parser
 
 A high performance redis parser solution built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/ioredis/luin).
+
+Generally all [RESP](http://redis.io/topics/protocol) data will be properly parsed by the parser.
 
 ## Install
 
@@ -20,12 +24,12 @@ new Parser(options);
 
 ### Possible options
 
-`returnReply`: *function*; mandatory
-`returnError`: *function*; mandatory
-`returnFatalError`: *function*; optional, defaults to the returnError function
-`returnBuffers`: *boolean*; optional, defaults to false
-`name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available
-`context`: *A class instance that the return functions get bound to*; optional
+* `returnReply`: *function*; mandatory
+* `returnError`: *function*; mandatory
+* `returnFatalError`: *function*; optional, defaults to the returnError function
+* `returnBuffers`: *boolean*; optional, defaults to false
+* `name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available
+* `context`: *A class instance that the return functions get bound to*; optional
 
 ### Example
 
@@ -50,7 +54,6 @@ var parser = new Parser({
 Library.prototype.streamHandler = function () {
     this.stream.on('data', function (buffer) {
         // Here the data (e.g. `new Buffer('$5\r\nHello\r\n'`)) is passed to the parser and the result is passed to either function depending on the provided data.
-        // All [RESP](http://redis.io/topics/protocol) data will be properly parsed by the parser.
         parser.execute(buffer);
     });
 };
@@ -101,4 +104,4 @@ node benchmarks/diff_multi_bench_output.js old.log new.log > improvement.log
 
 ## License
 
-[MIT](./LICENSE
+[MIT](./LICENSE)

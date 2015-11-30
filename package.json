@@ -30,7 +30,8 @@
   "devDependencies": {
     "jshint": "^2.8.0",
     "mocha": "^2.3.2",
-    "istanbul": "^0.4.0"
+    "istanbul": "^0.4.0",
+    "codeclimate-test-reporter": "^0.1.1"
   },
   "optionalDependency": {
     "hiredis": "^0.4.1"
