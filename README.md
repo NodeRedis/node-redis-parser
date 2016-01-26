@@ -90,6 +90,11 @@ Node.js and therefor used as default in redis-parser if the hiredis parser is av
 Otherwise the pure js NodeRedis parser is choosen that is almost as fast as the
 hiredis parser besides some situations in which it'll be a bit slower.
 
+## Protocol errors
+
+To handle protocol errors (this is very unlikely to happen) gracefuly you should add the returnFatalError option, reject any still running command (they might have been processed properly but the reply is just wrong), destroy the socket and reconnect.
+Otherwise a chunk might still contain partial data of a following command that was already processed properly but answered in the same chunk as the command that resulted in the protocol error.
+
 ## Contribute
 
 The js parser is already optimized but there are likely further optimizations possible.

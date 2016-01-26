@@ -93,11 +93,13 @@ describe('parsers', function () {
                 assert.equal(replyCount, 1);
             });
 
-            it('parser error v2', function () {
+            it('parser error resets the buffer', function () {
                 var replyCount = 0;
                 var errCount = 0;
                 function checkReply (reply) {
-                    assert.strictEqual(reply[0], 'OK');
+                    assert.strictEqual(reply.length, 1);
+                    assert(Buffer.isBuffer(reply[0]));
+                    assert.strictEqual(reply[0].toString(), 'CCC');
                     replyCount++;
                 }
                 function checkError (err) {
@@ -108,12 +110,16 @@ describe('parsers', function () {
                     returnReply: checkReply,
                     returnError: returnError,
                     returnFatalError: checkError,
-                    name: parserName
+                    name: parserName,
+                    returnBuffers: true
                 });
 
-                parser.execute(new Buffer('*1\r\n+OK\r\nb$1`zasd\r\na'));
+                // The chunk contains valid data after the protocol error
+                parser.execute(new Buffer('*1\r\n+CCC\r\nb$1\r\nz\r\n+abc\r\n'));
                 assert.strictEqual(replyCount, 1);
                 assert.strictEqual(errCount, 1);
+                parser.execute(new Buffer('*1\r\n+CCC\r\n'));
+                assert.strictEqual(replyCount, 2);
             });
 
             it('parser error v3 without returnFatalError specified', function () {
