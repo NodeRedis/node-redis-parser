@@ -19,6 +19,8 @@ npm install redis-parser
 ## Usage
 
 ```js
+var Parser = require('redis-parser');
+
 new Parser(options);
 ```
 
@@ -28,7 +30,8 @@ new Parser(options);
 * `returnError`: *function*; mandatory
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
-* `name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available
+* `name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available or if the stringNumbers option is choosen
+* `stringNumbers`: *boolean*; optional, defaults to false. This is only available for the javascript parser at the moment!
 
 ### Example
 
@@ -64,7 +67,9 @@ Library.prototype.streamHandler = function () {
 ```
 You do not have to use the returnFatalError function. Fatal errors will be returned in the normal error function in that case.
 
-And if you want to return buffers instead of strings, you can do this by adding the returnBuffers option.
+And if you want to return buffers instead of strings, you can do this by adding the `returnBuffers` option.
+
+If you handle big numbers, you should pass the `stringNumbers` option. That case numbers above 2^53 can be handled properly without reduced precision.
 
 ```js
 // Same functions as in the first example
@@ -76,6 +81,8 @@ var parser = new Parser({
     returnError: function(err) {
         lib.returnError(err);
     },
+    name: 'javascript', // Use the Javascript parser
+    stringNumbers: true, // Return all numbers as string instead of a js number
     returnBuffers: true // All strings are returned as buffer e.g. <Buffer 48 65 6c 6c 6f>
 });
 

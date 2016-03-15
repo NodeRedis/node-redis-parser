@@ -1,5 +1,6 @@
 'use strict';
 
+var intercept = require('intercept-stdout');
 var assert = require('assert');
 var Parser = require('../');
 var parsers = ['javascript', 'hiredis'];
@@ -28,8 +29,42 @@ describe('parsers', function () {
                     returnReply: returnReply,
                     returnBuffers: true
                 });
-            }, 'Please provide all return functions while initiating the parser');
+            }, function (err) {
+                assert.strictEqual(err.message, 'Please provide all return functions while initiating the parser');
+                return true;
+            });
 
+        });
+
+        it('unknown parser', function () {
+            var str = '';
+            var unhookIntercept = intercept(function (data) {
+                str += data;
+                return '';
+            });
+            new Parser({
+                returnReply: returnReply,
+                returnError: returnError,
+                name: 'something_unknown'
+            });
+            unhookIntercept();
+            assert(/^Warning: The requested parser "something_unknown" is unkown and the JS parser is choosen instead\.\n +at new Parser/.test(str), str);
+        });
+
+        it('hiredis and stringNumbers', function () {
+            var str = '';
+            var unhookIntercept = intercept(function (data) {
+                str += data;
+                return '';
+            });
+            new Parser({
+                returnReply: returnReply,
+                returnError: returnError,
+                name: 'hiredis',
+                stringNumbers: true
+            });
+            unhookIntercept();
+            assert(/^Warning: You explicitly required the hiredis parser in combination with the stringNumbers option. .+.\.\n +at new Parser/.test(str), str);
         });
 
     });
@@ -399,6 +434,29 @@ describe('parsers', function () {
                 parser.execute(new Buffer('test \r\n$20\r\ntest test test test \r\n:1234\r'));
                 assert.strictEqual(replyCount, 2);
                 parser.execute(new Buffer('\n'));
+                assert.strictEqual(replyCount, 3);
+            });
+
+            it('return numbers as strings', function () {
+                var replyCount = 0;
+                var entries = ['123', '590295810358705700002', '-99999999999999999'];
+                function checkReply(reply) {
+                    assert.strictEqual(typeof reply, 'string');
+                    assert.strictEqual(reply, entries[replyCount]);
+                    replyCount++;
+                }
+                var unhookIntercept = intercept(function () {
+                    return '';
+                });
+                var parser = new Parser({
+                    returnReply: checkReply,
+                    returnError: returnError,
+                    returnFatalError: returnFatalError,
+                    name: parserName,
+                    stringNumbers: true
+                });
+                unhookIntercept();
+                parser.execute(new Buffer(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n'));
                 assert.strictEqual(replyCount, 3);
             });
         });

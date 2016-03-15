@@ -28,10 +28,11 @@
     "node": ">=0.10.0"
   },
   "devDependencies": {
-    "jshint": "^2.8.0",
-    "mocha": "^2.3.2",
+    "codeclimate-test-reporter": "^0.1.1",
+    "intercept-stdout": "^0.1.2",
     "istanbul": "^0.4.0",
-    "codeclimate-test-reporter": "^0.1.1"
+    "jshint": "^2.8.0",
+    "mocha": "^2.3.2"
   },
   "optionalDependency": {
     "hiredis": "^0.4.1"
