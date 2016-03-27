@@ -30,7 +30,7 @@ new Parser(options);
 * `returnError`: *function*; mandatory
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
-* `name`: *javascript|hiredis*; optional, defaults to hiredis and falls back to the js parser if not available or if the stringNumbers option is choosen
+* `name`: *'javascript'|'hiredis'|'auto'|null*; optional, defaults to hiredis and falls back to the js parser if not available or if the stringNumbers option is choosen. Setting this to 'auto' or null is going to automatically determine what parser is available and chooses that one.
 * `stringNumbers`: *boolean*; optional, defaults to false. This is only available for the javascript parser at the moment!
 
 ### Example
@@ -55,8 +55,9 @@ var parser = new Parser({
     },
     returnFatalError: function (err) {
         lib.returnFatalError(err);
-    }
-}); // This returns either a hiredis or the js parser instance depending on what's available
+    },
+    name: 'auto' // This returns either the hiredis or the js parser instance depending on what's available
+});
 
 Library.prototype.streamHandler = function () {
     this.stream.on('data', function (buffer) {

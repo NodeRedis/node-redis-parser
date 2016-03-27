@@ -23,6 +23,24 @@ describe('parsers', function () {
             assert.strictEqual(parser.name, 'hiredis');
         });
 
+        it('auto parser', function () {
+            var parser = new Parser({
+                returnReply: returnReply,
+                returnError: returnError,
+                name: 'auto'
+            });
+            assert.strictEqual(parser.name, 'hiredis');
+        });
+
+        it('auto parser v2', function () {
+            var parser = new Parser({
+                returnReply: returnReply,
+                returnError: returnError,
+                name: null
+            });
+            assert.strictEqual(parser.name, 'hiredis');
+        });
+
         it('fail for missing options', function () {
             assert.throws(function() {
                 new Parser({
@@ -42,13 +60,14 @@ describe('parsers', function () {
                 str += data;
                 return '';
             });
-            new Parser({
+            var parser = new Parser({
                 returnReply: returnReply,
                 returnError: returnError,
                 name: 'something_unknown'
             });
             unhookIntercept();
-            assert(/^Warning: The requested parser "something_unknown" is unkown and the JS parser is choosen instead\.\n +at new Parser/.test(str), str);
+            assert.strictEqual(parser.name, 'hiredis');
+            assert(/^Warning: The requested parser "something_unknown" is unkown and the default parser is choosen instead\.\n +at new Parser/.test(str), str);
         });
 
         it('hiredis and stringNumbers', function () {
@@ -57,13 +76,14 @@ describe('parsers', function () {
                 str += data;
                 return '';
             });
-            new Parser({
+            var parser = new Parser({
                 returnReply: returnReply,
                 returnError: returnError,
                 name: 'hiredis',
                 stringNumbers: true
             });
             unhookIntercept();
+            assert.strictEqual(parser.name, 'javascript');
             assert(/^Warning: You explicitly required the hiredis parser in combination with the stringNumbers option. .+.\.\n +at new Parser/.test(str), str);
         });
 

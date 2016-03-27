@@ -1,3 +1,10 @@
+## v.1.3.0 - 27 Mar, 2016
+
+Features
+
+-  Added `auto` as parser name option to check what parser is available
+-  Non existing requested parsers falls back into auto mode instead of always choosing the JS parser
+
 ## v.1.2.0 - 27 Mar, 2016
 
 Features
