@@ -2,3 +2,5 @@ node_modules/**
 coverage/**
 **.md
 **.log
+.idea
+benchmark
