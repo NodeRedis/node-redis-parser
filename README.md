@@ -4,7 +4,7 @@
 
 # redis-parser
 
-A high performance redis parser solution built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/ioredis/luin).
+A high performance redis parser solution built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/luin/ioredis).
 
 Generally all [RESP](http://redis.io/topics/protocol) data will be properly parsed by the parser.
 
@@ -95,31 +95,22 @@ var parser = new Parser({
 The [hiredis](https://github.com/redis/hiredis) parser is still the fasted parser for
 Node.js and therefor used as default in redis-parser if the hiredis parser is available.
 
-Otherwise the pure js NodeRedis parser is choosen that is almost as fast as the
+Otherwise the pure js NodeRedis parser is chosen that is almost as fast as the
 hiredis parser besides some situations in which it'll be a bit slower.
 
 ## Protocol errors
 
-To handle protocol errors (this is very unlikely to happen) gracefuly you should add the returnFatalError option, reject any still running command (they might have been processed properly but the reply is just wrong), destroy the socket and reconnect.
+To handle protocol errors (this is very unlikely to happen) gracefully you should add the returnFatalError option, reject any still running command (they might have been processed properly but the reply is just wrong), destroy the socket and reconnect.
 Otherwise a chunk might still contain partial data of a following command that was already processed properly but answered in the same chunk as the command that resulted in the protocol error.
 
 ## Contribute
 
 The js parser is already optimized but there are likely further optimizations possible.
-Besides running the tests you'll also have to run the change at least against the node_redis benchmark suite and post the improvement in the PR.
-If you want to write a own parser benchmark, that would also be great!
 
 ```
 npm install
 npm test
-
-# Run node_redis benchmark (let's guess you cloned node_redis in another folder)
-cd ../redis
-npm install
-npm run benchmark parser=javascript > old.log
-# Replace the changed parser in the node_modules
-npm run benchmark parser=javascript > new.log
-node benchmarks/diff_multi_bench_output.js old.log new.log > improvement.log
+npm run benchmark
 ```
 
 ## License

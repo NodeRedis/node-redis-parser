@@ -9,7 +9,7 @@
     "freeze": true, // prohibit overwriting prototypes of native objects
     "maxdepth": 4,
     "latedef": true,
-    "maxparams": 3,
+    "maxparams": 4,
 
     // Environment options
     "node": true, // Enable globals available when code is running inside of the NodeJS runtime environment.

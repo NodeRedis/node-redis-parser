@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
+    "benchmark": "node ./benchmark",
     "posttest": "jshint . && npm run coverage && npm run coverage:check",
     "coverage": "node ./node_modules/istanbul/lib/cli.js cover --preserve-comments ./node_modules/mocha/bin/_mocha -- -R spec",
     "coverage:check": "node ./node_modules/istanbul/lib/cli.js check-coverage --branch 100 --statement 100"
@@ -28,7 +29,8 @@
     "node": ">=0.10.0"
   },
   "devDependencies": {
-    "codeclimate-test-reporter": "^0.1.1",
+    "benchmark": "^2.1.0",
+    "codeclimate-test-reporter": "^0.3.1",
     "intercept-stdout": "^0.1.2",
     "istanbul": "^0.4.0",
     "jshint": "^2.8.0",
