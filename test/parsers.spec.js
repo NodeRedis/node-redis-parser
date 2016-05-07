@@ -149,7 +149,7 @@ describe('parsers', function () {
       it('should handle \\r and \\n characters properly', function () {
         // If a string contains \r or \n characters it will always be send as a bulk string
         var replyCount = 0
-        var entries = ['foo\r', 'foo\r\nbar', '\r\nfoo', 'foo\r\n']
+        var entries = ['foo\r', 'foo\r\nbar', '\r\nfoo', 'foo\r\n', 'foo']
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
@@ -164,6 +164,10 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 2)
         parser.execute(new Buffer('foo\r\n$5\r\nfoo\r\n\r\n'))
         assert.strictEqual(replyCount, 4)
+        parser.execute(new Buffer('+foo\r'))
+        assert.strictEqual(replyCount, 4)
+        parser.execute(new Buffer('\n'))
+        assert.strictEqual(replyCount, 5)
       })
 
       it('line breaks in the beginning of the last chunk', function () {
