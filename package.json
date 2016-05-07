@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha",
     "benchmark": "node ./benchmark",
-    "posttest": "jshint . && npm run coverage && npm run coverage:check",
+    "posttest": "standard && npm run coverage && npm run coverage:check",
     "coverage": "node ./node_modules/istanbul/lib/cli.js cover --preserve-comments ./node_modules/mocha/bin/_mocha -- -R spec",
     "coverage:check": "node ./node_modules/istanbul/lib/cli.js check-coverage --branch 100 --statement 100"
   },
@@ -33,10 +33,8 @@
     "codeclimate-test-reporter": "^0.3.1",
     "intercept-stdout": "^0.1.2",
     "istanbul": "^0.4.0",
-    "jshint": "^2.8.0",
-    "mocha": "^2.3.2"
-  },
-  "optionalDependency": {
+    "standard": "^7.0.1",
+    "mocha": "^2.3.2",
     "hiredis": "^0.4.1"
   },
   "author": "Ruben Bridgewater",

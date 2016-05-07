@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/NodeRedis/node-redis-parser.png?branch=master)](https://travis-ci.org/NodeRedis/node-redis-parser)
 [![Code Climate](https://codeclimate.com/github/NodeRedis/node-redis-parser/badges/gpa.svg)](https://codeclimate.com/github/NodeRedis/node-redis-parser)
 [![Test Coverage](https://codeclimate.com/github/NodeRedis/node-redis-parser/badges/coverage.svg)](https://codeclimate.com/github/NodeRedis/node-redis-parser/coverage)
+[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 # redis-parser
 
