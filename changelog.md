@@ -1,3 +1,21 @@
+## v.2.0.0 - 0x May, 2016
+
+The javascript parser got completly rewritten by [Michael Diarmid](https://github.com/Salakar) and [Ruben Bridgewater](https://github.com/BridgeAR) and is now a lot faster than the hiredis parser.
+Therefore the hiredis parser was removed and is only used for testing purposes and benchmarking comparison.
+
+All Errors returned by the parser are from now on of class ReplyError
+
+Features
+
+-  Added ReplyError Class
+-  Added parser benchmark
+
+Removed
+
+-  Dropped support of hiredis
+-  The `name` option is "removed"
+ -  It is still available for backwards compatibility but it is strongly recommended not to use it
+
 ## v.1.3.0 - 27 Mar, 2016
 
 Features

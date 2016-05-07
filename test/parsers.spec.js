@@ -2,8 +2,10 @@
 
 var intercept = require('intercept-stdout');
 var assert = require('assert');
-var Parser = require('../');
-var parsers = ['javascript', 'hiredis'];
+var JavascriptParser = require('../');
+var HiredisParser = require('./hiredis');
+var ReplyError = JavascriptParser.ReplyError;
+var parsers = [JavascriptParser, HiredisParser];
 
 // Mock the not needed return functions
 function returnReply () { throw new Error('failed'); }
@@ -14,38 +16,21 @@ describe('parsers', function () {
 
     describe('general parser functionality', function () {
 
-        it('use default values', function () {
-            var parser = new Parser({
-                returnReply: returnReply,
-                returnError: returnError
-            });
-            assert.strictEqual(parser.returnError, parser.returnFatalError);
-            assert.strictEqual(parser.name, 'hiredis');
-        });
-
-        it('auto parser', function () {
-            var parser = new Parser({
+        it('backwards compatibility with hiredis', function () {
+            var parser = new JavascriptParser({
                 returnReply: returnReply,
                 returnError: returnError,
-                name: 'auto'
-            });
-            assert.strictEqual(parser.name, 'hiredis');
-        });
-
-        it('auto parser v2', function () {
-            var parser = new Parser({
-                returnReply: returnReply,
-                returnError: returnError,
-                name: null
+                name: 'hiredis'
             });
             assert.strictEqual(parser.name, 'hiredis');
         });
 
         it('fail for missing options', function () {
             assert.throws(function() {
-                new Parser({
+                new JavascriptParser({
                     returnReply: returnReply,
-                    returnBuffers: true
+                    returnBuffers: true,
+                    name: 'hiredis'
                 });
             }, function (err) {
                 assert.strictEqual(err.message, 'Please provide all return functions while initiating the parser');
@@ -54,44 +39,11 @@ describe('parsers', function () {
 
         });
 
-        it('unknown parser', function () {
-            var str = '';
-            var unhookIntercept = intercept(function (data) {
-                str += data;
-                return '';
-            });
-            var parser = new Parser({
-                returnReply: returnReply,
-                returnError: returnError,
-                name: 'something_unknown'
-            });
-            unhookIntercept();
-            assert.strictEqual(parser.name, 'hiredis');
-            assert(/^Warning: The requested parser "something_unknown" is unkown and the default parser is choosen instead\.\n +at new Parser/.test(str), str);
-        });
-
-        it('hiredis and stringNumbers', function () {
-            var str = '';
-            var unhookIntercept = intercept(function (data) {
-                str += data;
-                return '';
-            });
-            var parser = new Parser({
-                returnReply: returnReply,
-                returnError: returnError,
-                name: 'hiredis',
-                stringNumbers: true
-            });
-            unhookIntercept();
-            assert.strictEqual(parser.name, 'javascript');
-            assert(/^Warning: You explicitly required the hiredis parser in combination with the stringNumbers option. .+.\.\n +at new Parser/.test(str), str);
-        });
-
     });
 
-    parsers.forEach(function (parserName) {
+    parsers.forEach(function (Parser) {
 
-        describe(parserName, function () {
+        describe(Parser.name, function () {
 
             it('handles multi-bulk reply and check context binding', function () {
                 var replyCount = 0;
@@ -108,8 +60,7 @@ describe('parsers', function () {
                         test.checkReply(reply);
                     },
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na\r\n'));
@@ -128,9 +79,12 @@ describe('parsers', function () {
             it('parser error', function () {
                 var replyCount = 0;
                 function Abc () {}
-                Abc.prototype.checkReply = function (reply) {
+                Abc.prototype.checkReply = function (err) {
                     assert.strictEqual(typeof this.log, 'function');
-                    assert.strictEqual(reply.message, 'Protocol error, got "a" as reply type byte');
+                    assert.strictEqual(err.message, 'Protocol error, got "a" as reply type byte');
+                    assert.strictEqual(err.name, 'ReplyError');
+                    assert(err instanceof ReplyError);
+                    assert(err instanceof Error);
                     replyCount++;
                 };
                 Abc.prototype.log = console.log;
@@ -140,8 +94,7 @@ describe('parsers', function () {
                     returnError: returnError,
                     returnFatalError: function (err) {
                         test.checkReply(err);
-                    },
-                    name: parserName
+                    }
                 });
 
                 parser.execute(new Buffer('a*1\r*1\r$1`zasd\r\na'));
@@ -165,7 +118,6 @@ describe('parsers', function () {
                     returnReply: checkReply,
                     returnError: returnError,
                     returnFatalError: checkError,
-                    name: parserName,
                     returnBuffers: true
                 });
 
@@ -190,8 +142,7 @@ describe('parsers', function () {
                 }
                 var parser = new Parser({
                     returnReply: checkReply,
-                    returnError: checkError,
-                    name: parserName
+                    returnError: checkError
                 });
 
                 parser.execute(new Buffer('*1\r\n+OK\r\n\n+zasd\r\n'));
@@ -210,8 +161,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$5\r\n\r\n'));
@@ -229,8 +179,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na'));
@@ -252,8 +201,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('$100\r\nabcdefghij'));
@@ -289,15 +237,25 @@ describe('parsers', function () {
                     'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij',
                     'test',
                     100,
-                    new Error('Error message'),
-                    ['The force awakens']
+                    new ReplyError('Error message'),
+                    ['The force awakens'],
+                    new ReplyError()
                 ];
                 function checkReply(reply) {
                     for (var i = 0; i < reply.length; i++) {
-                        if (i < 3) {
-                            assert.strictEqual(reply[i], predefined_data[i]);
+                        if (Array.isArray(reply[i])) {
+                            reply[i].forEach(function (reply, j) {
+                                assert.strictEqual(reply, predefined_data[i][j]);
+                            });
+                        } else if (reply[i] instanceof Error) {
+                            if (Parser.name !== 'HiredisReplyParser') { // The hiredis always returns normal errors in case of nested ones
+                                assert(reply[i] instanceof ReplyError);
+                                assert.strictEqual(reply[i].name, predefined_data[i].name);
+                                assert.deepStrictEqual(reply[i], predefined_data[i]);
+                            }
+                            assert.strictEqual(reply[i].message, predefined_data[i].message);
                         } else {
-                            assert.deepEqual(reply[i], predefined_data[i]);
+                            assert.strictEqual(reply[i], predefined_data[i]);
                         }
                     }
                     replyCount++;
@@ -306,11 +264,10 @@ describe('parsers', function () {
                     returnReply: checkReply,
                     returnError: returnError,
                     returnFatalError: returnFatalError,
-                    name: parserName,
                     returnBuffers: false
                 });
 
-                parser.execute(new Buffer('*5\r\n$100\r\nabcdefghij'));
+                parser.execute(new Buffer('*6\r\n$100\r\nabcdefghij'));
                 parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'));
                 parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'));
                 parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij\r\n'));
@@ -319,7 +276,7 @@ describe('parsers', function () {
                 parser.execute(new Buffer('\r\n-Error message'));
                 parser.execute(new Buffer('\r\n*1\r\n$17\r\nThe force'));
                 assert.strictEqual(replyCount, 0);
-                parser.execute(new Buffer(' awakens\r\n$5'));
+                parser.execute(new Buffer(' awakens\r\n-\r\n$5'));
                 assert.strictEqual(replyCount, 1);
             });
 
@@ -332,8 +289,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: returnError,
                     returnError: checkReply,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('-Error '));
@@ -352,8 +308,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer('$-1\r\n*-'));
@@ -373,8 +328,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer(':'));
@@ -396,8 +350,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
 
                 parser.execute(new Buffer(':1\r\n:'));
@@ -424,7 +377,6 @@ describe('parsers', function () {
                     returnReply: checkReply,
                     returnError: returnError,
                     returnFatalError: returnFatalError,
-                    name: parserName,
                     returnBuffers: true
                 });
 
@@ -446,8 +398,7 @@ describe('parsers', function () {
                 var parser = new Parser({
                     returnReply: checkReply,
                     returnError: returnError,
-                    returnFatalError: returnFatalError,
-                    name: parserName
+                    returnFatalError: returnFatalError
                 });
                 parser.execute(new Buffer('$10\r\ntest '));
                 assert.strictEqual(replyCount, 0);
@@ -458,6 +409,9 @@ describe('parsers', function () {
             });
 
             it('return numbers as strings', function () {
+                if (Parser.name === 'HiredisReplyParser') {
+                    return this.skip();
+                }
                 var replyCount = 0;
                 var entries = ['123', '590295810358705700002', '-99999999999999999'];
                 function checkReply(reply) {
@@ -472,7 +426,6 @@ describe('parsers', function () {
                     returnReply: checkReply,
                     returnError: returnError,
                     returnFatalError: returnFatalError,
-                    name: parserName,
                     stringNumbers: true
                 });
                 unhookIntercept();

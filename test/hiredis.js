@@ -1,20 +1,21 @@
 'use strict';
 
 var hiredis = require('hiredis');
+var ReplyError = require('../lib/replyError');
 
 /**
- * Parse data 
+ * Parse data
  * @param parser
  * @returns {*}
  */
-function parseData(parser) {
+function parseData (parser) {
 	try {
 		return parser.reader.get();
 	} catch (err) {
 		// Protocol errors land here
 		// Reset the parser. Otherwise new commands can't be processed properly
 		parser.reader = new hiredis.Reader(parser.options);
-		parser.returnFatalError(err);
+		parser.returnFatalError(new ReplyError(err.message));
 	}
 }
 
@@ -23,10 +24,18 @@ function parseData(parser) {
  * @param options
  * @constructor
  */
-function HiredisReplyParser(options) {
+function HiredisReplyParser (options) {
+	if (!(this instanceof HiredisReplyParser)) {
+		return new HiredisReplyParser(options);
+	}
+	this.returnError = options.returnError;
+	this.returnFatalError = options.returnFatalError || options.returnError;
+	this.returnReply = options.returnReply;
 	this.name = 'hiredis';
-	this.options = options;
-	this.reader = new hiredis.Reader(options);
+	this.options = {
+		return_buffers: !!options.returnBuffers
+	};
+	this.reader = new hiredis.Reader(this.options);
 }
 
 HiredisReplyParser.prototype.execute = function (data) {
@@ -35,12 +44,12 @@ HiredisReplyParser.prototype.execute = function (data) {
 
 	while (reply !== undefined) {
 		if (reply && reply.name === 'Error') {
-			this.returnError(reply);
+			this.returnError(new ReplyError(reply.message));
 		} else {
 			this.returnReply(reply);
 		}
 		reply = parseData(this);
 	}
-};
+}
 
 module.exports = HiredisReplyParser;
