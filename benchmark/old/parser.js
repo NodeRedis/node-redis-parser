@@ -1,12 +1,12 @@
 'use strict'
 
 var parsers = {
-  Javascript: require('./javascript')
+  javascript: require('./javascript')
 }
 
 // Hiredis might not be installed
 try {
-  parsers.Hiredis = require('./hiredis')
+  parsers.hiredis = require('./hiredis')
 } catch (err) { /* ignore errors */ }
 
 function Parser (options) {
@@ -45,9 +45,9 @@ function Parser (options) {
   }
 
   if (options.name === 'javascript' || !parsers.hiredis || options.stringNumbers) {
-    parser = new parsers.Javascript(innerOptions)
+    parser = new parsers.javascript(innerOptions) // eslint-disable-line new-cap
   } else {
-    parser = new parsers.Hiredis(innerOptions)
+    parser = new parsers.hiredis(innerOptions) // eslint-disable-line new-cap
   }
 
   parser.returnError = options.returnError

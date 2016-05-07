@@ -65,8 +65,7 @@ var parserHiRedis = new Parser({
 var parser = new Parser({
   returnReply: checkReply,
   returnError: returnError,
-  returnFatalError: returnError,
-  name: 'javascript'
+  returnFatalError: returnError
 })
 
 // BULK STRINGS
