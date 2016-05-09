@@ -112,7 +112,7 @@ describe('parsers', function () {
         }
         var parser = new Parser({
           returnReply: checkReply,
-          returnError: returnError,
+          returnError: checkError,
           returnFatalError: checkError,
           returnBuffers: true
         })
@@ -123,6 +123,8 @@ describe('parsers', function () {
         assert.strictEqual(errCount, 1)
         parser.execute(new Buffer('*1\r\n+CCC\r\n'))
         assert.strictEqual(replyCount, 2)
+        parser.execute(new Buffer('-Protocol error, got "b" as reply type byte\r\n'))
+        assert.strictEqual(errCount, 2)
       })
 
       it('parser error v3 without returnFatalError specified', function () {
