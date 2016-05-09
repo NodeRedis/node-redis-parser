@@ -42,11 +42,21 @@ var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
   'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
   'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
 var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
-var startBigBuffer = new Buffer('$' + (4 * 1024 * 1024) + '\r\n' + lorem)
+var startBigBuffer = new Buffer('$' + (4 * 1024 * 1024) + '\r\n')
 var chunks = new Array(64)
 for (var i = 0; i < 64; i++) {
   chunks[i] = new Buffer(shuffle(bigStringArray).join(' ') + '.') // Math.pow(2, 16) chars long
 }
+
+var bigArraySize = 100
+var bigArray = '*' + bigArraySize + '\r\n'
+for (i = 0; i < bigArraySize; i++) {
+  bigArray += '$'
+  var size = (Math.random() * 10 | 0) + 1
+  bigArray += size + '\r\n' + lorem.slice(0, size) + '\r\n'
+}
+
+var bigArrayBuffer = new Buffer(bigArray)
 
 var parserOld = new ParserOLD({
   returnReply: checkReply,
@@ -160,6 +170,20 @@ suite.add('HIREDIS: * array', function () {
 
 suite.add('NEW CODE: * array', function () {
   parser.execute(arrayBuffer)
+})
+
+// BIG ARRAYS
+
+suite.add('\nOLD CODE: * bigArray', function () {
+  parserOld.execute(bigArrayBuffer)
+})
+
+suite.add('HIREDIS: * bigArray', function () {
+  parserHiRedis.execute(bigArrayBuffer)
+})
+
+suite.add('NEW CODE: * bigArray', function () {
+  parser.execute(bigArrayBuffer)
 })
 
 // ERRORS
