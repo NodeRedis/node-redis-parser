@@ -13,6 +13,8 @@ Features
 Removed
 
 -  Dropped support of hiredis
+-  The `stringNumbers` option has been removed in favour of performance
+ - Large numbers are automatically stringified so this option is obsolete 
 -  The `name` option is "removed"
  -  It is still available for backwards compatibility but it is strongly recommended not to use it
 
