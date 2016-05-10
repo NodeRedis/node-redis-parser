@@ -5,9 +5,7 @@
 
 # redis-parser
 
-A high performance javascript redis parser built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/luin/ioredis).
-
-All [RESP](http://redis.io/topics/protocol) data is parsed by this parser.
+A high performance javascript redis parser built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/luin/ioredis). Parses all [RESP](http://redis.io/topics/protocol) data.
 
 ## Install
 
