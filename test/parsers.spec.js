@@ -220,9 +220,9 @@ describe('parsers', function () {
         parser.execute(new Buffer('abcdefghijabcdefghij'))
         assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer(
-          'abcdefghij\r\n' +
-          '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij\r\n' +
-          '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghij'
+            'abcdefghij\r\n' +
+            '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij\r\n' +
+            '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghij'
         ))
         assert.strictEqual(replyCount, 3)
         parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
@@ -409,14 +409,14 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 3)
       })
 
-      it('return numbers as strings', function () {
+      it('return numbers as strings if too large', function () {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
         }
         var replyCount = 0
-        var entries = ['123', '590295810358705700002', '-99999999999999999']
+        var entries = [123, '590295810358705700002', '-99999999999999999']
         function checkReply (reply) {
-          assert.strictEqual(typeof reply, 'string')
+          assert.strictEqual(typeof reply, typeof entries[replyCount])
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
         }
