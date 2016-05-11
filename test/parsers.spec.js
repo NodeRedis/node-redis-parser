@@ -2,7 +2,6 @@
 
 /* eslint-env mocha */
 
-var intercept = require('intercept-stdout')
 var assert = require('assert')
 var JavascriptParser = require('../')
 var HiredisParser = require('./hiredis')
@@ -420,18 +419,35 @@ describe('parsers', function () {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
         }
-        var unhookIntercept = intercept(function () {
-          return ''
-        })
         var parser = new Parser({
           returnReply: checkReply,
           returnError: returnError,
           returnFatalError: returnFatalError,
           stringNumbers: true
         })
-        unhookIntercept()
         parser.execute(new Buffer(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n'))
         assert.strictEqual(replyCount, 3)
+      })
+
+      it('handle big numbers', function () {
+        if (Parser.name === 'HiredisReplyParser') {
+          return this.skip()
+        }
+        var replyCount = 0
+        var number = 9007199254740991 // Number.MAX_SAFE_INTEGER
+        function checkReply (reply) {
+          assert.strictEqual(reply, number++)
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parser.execute(new Buffer(':' + number + '\r\n'))
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer(':' + number + '\r\n'))
+        assert.strictEqual(replyCount, 2)
       })
     })
   })
