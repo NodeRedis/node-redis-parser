@@ -449,6 +449,74 @@ describe('parsers', function () {
         parser.execute(new Buffer(':' + number + '\r\n'))
         assert.strictEqual(replyCount, 2)
       })
+
+      it('handle big data', function () {
+        if (Parser.name === 'HiredisReplyParser') {
+          return this.skip()
+        }
+        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+          'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
+          'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
+        var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
+        var startBigBuffer = new Buffer('$' + (4 * 1024 * 1024) + '\r\n')
+        var chunks = new Array(64)
+        for (var i = 0; i < 64; i++) {
+          chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
+        }
+        var replyCount = 0
+        function checkReply (reply) {
+          assert.strictEqual(reply.length, 4 * 1024 * 1024)
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parser.execute(startBigBuffer)
+        for (i = 0; i < 64; i++) {
+          assert.strictEqual(parser.bufferCache.length, i + 1)
+          parser.execute(chunks[i])
+        }
+        assert.strictEqual(replyCount, 0)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 1)
+      })
+
+      it('handle big data 2', function () {
+        if (Parser.name === 'HiredisReplyParser') {
+          return this.skip()
+        }
+        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+          'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
+          'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
+        var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
+        var startBigBuffer = new Buffer('\r\n$' + (4 * 1024 * 1024) + '\r\n')
+        var chunks = new Array(64)
+        for (var i = 0; i < 64; i++) {
+          chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
+        }
+        var replyCount = 0
+        function checkReply (reply) {
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parser.execute(new Buffer('+test'))
+        parser.execute(startBigBuffer)
+        for (i = 0; i < 64; i++) {
+          assert.strictEqual(parser.bufferCache.length, i + 1)
+          parser.execute(chunks[i])
+        }
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 2)
+      })
     })
   })
 })

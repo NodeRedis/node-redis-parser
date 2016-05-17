@@ -58,6 +58,8 @@ for (i = 0; i < bigArraySize; i++) {
 }
 
 var bigArrayBuffer = new Buffer(bigArray)
+var chunkedStringPart1 = new Buffer('+foobar')
+var chunkedStringPart2 = new Buffer('bazEND\r\n')
 
 var parserOld = new ParserOLD({
   returnReply: checkReply,
@@ -103,6 +105,23 @@ suite.add('NEW CODE: multiple chunks in a bulk string', function () {
   parser.execute(chunkBuffer)
   parser.execute(chunkBuffer)
   parser.execute(endBuffer)
+})
+
+// CHUNKED STRINGS
+
+suite.add('\nOLD CODE: multiple chunks in a string', function () {
+  parserOld.execute(chunkedStringPart1)
+  parserOld.execute(chunkedStringPart2)
+})
+
+suite.add('HIREDIS: multiple chunks in a string', function () {
+  parserHiRedis.execute(chunkedStringPart1)
+  parserHiRedis.execute(chunkedStringPart2)
+})
+
+suite.add('NEW CODE: multiple chunks in a string', function () {
+  parser.execute(chunkedStringPart1)
+  parser.execute(chunkedStringPart2)
 })
 
 // BIG BULK STRING
