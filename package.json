@@ -4,9 +4,9 @@
   "description": "Javascript Redis protocol (RESP) parser",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
+    "test": "npm run coverage",
     "benchmark": "node ./benchmark",
-    "posttest": "standard && npm run coverage && npm run coverage:check",
+    "posttest": "standard && npm run coverage:check",
     "coverage": "node ./node_modules/istanbul/lib/cli.js cover --preserve-comments ./node_modules/mocha/bin/_mocha -- -R spec",
     "coverage:check": "node ./node_modules/istanbul/lib/cli.js check-coverage --branch 100 --statement 100"
   },
