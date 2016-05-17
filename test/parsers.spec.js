@@ -24,15 +24,39 @@ describe('parsers', function () {
       assert.strictEqual(parser.name, 'hiredis')
     })
 
-    it('fail for missing options', function () {
+    it('fail for missing options argument', function () {
+      assert.throws(function () {
+        JavascriptParser()
+      }, function (err) {
+        assert.strictEqual(err.message, 'Please provide all return functions while initiating the parser')
+        assert(err instanceof TypeError)
+        return true
+      })
+    })
+
+    it('fail for faulty options properties', function () {
       assert.throws(function () {
         JavascriptParser({
           returnReply: returnReply,
-          returnBuffers: true,
-          name: 'hiredis'
+          returnError: true
         })
       }, function (err) {
-        assert.strictEqual(err.message, 'Please provide all return functions while initiating the parser')
+        assert.strictEqual(err.message, 'The options argument contains unkown properties or properties of a wrong type')
+        assert(err instanceof TypeError)
+        return true
+      })
+    })
+
+    it('fail for faulty options properties #2', function () {
+      assert.throws(function () {
+        JavascriptParser({
+          returnReply: returnReply,
+          returnError: returnError,
+          bla: undefined
+        })
+      }, function (err) {
+        assert.strictEqual(err.message, 'The options argument contains unkown properties or properties of a wrong type')
+        assert(err instanceof TypeError)
         return true
       })
     })
