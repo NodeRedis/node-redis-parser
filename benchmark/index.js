@@ -81,6 +81,20 @@ var parser = new Parser({
   returnFatalError: returnError
 })
 
+var parserBuffer = new Parser({
+  returnReply: checkReply,
+  returnError: returnError,
+  returnFatalError: returnError,
+  returnBuffers: true
+})
+
+var parserStr = new Parser({
+  returnReply: checkReply,
+  returnError: returnError,
+  returnFatalError: returnError,
+  stringNumbers: true
+})
+
 // BULK STRINGS
 
 suite.add('OLD CODE: multiple chunks in a bulk string', function () {
@@ -107,6 +121,14 @@ suite.add('NEW CODE: multiple chunks in a bulk string', function () {
   parser.execute(endBuffer)
 })
 
+suite.add('NEW BUF: multiple chunks in a bulk string', function () {
+  parserBuffer.execute(startBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(endBuffer)
+})
+
 // CHUNKED STRINGS
 
 suite.add('\nOLD CODE: multiple chunks in a string', function () {
@@ -122,6 +144,11 @@ suite.add('HIREDIS: multiple chunks in a string', function () {
 suite.add('NEW CODE: multiple chunks in a string', function () {
   parser.execute(chunkedStringPart1)
   parser.execute(chunkedStringPart2)
+})
+
+suite.add('NEW BUF: multiple chunks in a string', function () {
+  parserBuffer.execute(chunkedStringPart1)
+  parserBuffer.execute(chunkedStringPart2)
 })
 
 // BIG BULK STRING
@@ -150,6 +177,14 @@ suite.add('NEW CODE: 4mb bulk string', function () {
   parser.execute(endBuffer)
 })
 
+suite.add('NEW BUF: 4mb bulk string', function () {
+  parserBuffer.execute(startBigBuffer)
+  for (var i = 0; i < 64; i++) {
+    parserBuffer.execute(chunks[i])
+  }
+  parserBuffer.execute(endBuffer)
+})
+
 // STRINGS
 
 suite.add('\nOLD CODE: + simple string', function () {
@@ -162,6 +197,10 @@ suite.add('HIREDIS: + simple string', function () {
 
 suite.add('NEW CODE: + simple string', function () {
   parser.execute(stringBuffer)
+})
+
+suite.add('NEW BUF: + simple string', function () {
+  parserBuffer.execute(stringBuffer)
 })
 
 // INTEGERS
@@ -178,6 +217,10 @@ suite.add('NEW CODE: + integer', function () {
   parser.execute(integerBuffer)
 })
 
+suite.add('NEW STR: + integer', function () {
+  parserStr.execute(integerBuffer)
+})
+
 // BIG INTEGER
 
 suite.add('\nOLD CODE: + big integer', function () {
@@ -190,6 +233,10 @@ suite.add('HIREDIS: + big integer', function () {
 
 suite.add('NEW CODE: + big integer', function () {
   parser.execute(bigIntegerBuffer)
+})
+
+suite.add('NEW STR: + big integer', function () {
+  parserStr.execute(bigIntegerBuffer)
 })
 
 // ARRAYS
@@ -206,6 +253,10 @@ suite.add('NEW CODE: * array', function () {
   parser.execute(arrayBuffer)
 })
 
+suite.add('NEW BUF: * array', function () {
+  parserBuffer.execute(arrayBuffer)
+})
+
 // BIG ARRAYS
 
 suite.add('\nOLD CODE: * bigArray', function () {
@@ -218,6 +269,10 @@ suite.add('HIREDIS: * bigArray', function () {
 
 suite.add('NEW CODE: * bigArray', function () {
   parser.execute(bigArrayBuffer)
+})
+
+suite.add('NEW BUF: * bigArray', function () {
+  parserBuffer.execute(bigArrayBuffer)
 })
 
 // ERRORS
