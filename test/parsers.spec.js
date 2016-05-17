@@ -40,6 +40,32 @@ describe('parsers', function () {
 
   parsers.forEach(function (Parser) {
     describe(Parser.name, function () {
+      it('chunks getting to big for the bufferPool', function () {
+        // This is a edge case. Chunks should not exceed Math.pow(2, 16) bytes
+        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+          'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
+          'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
+        var bigString = (new Array(Math.pow(2, 17) / lorem.length).join(lorem)) // Math.pow(2, 17) chars long
+        var replyCount = 0
+        function checkReply (reply) {
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parser.execute(new Buffer('+test'))
+        assert.strictEqual(replyCount, 0)
+        parser.execute(new Buffer('\r\n+'))
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer(bigString))
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 2)
+      })
+
       it('handles multi-bulk reply and check context binding', function () {
         var replyCount = 0
         function Abc () {}
@@ -430,9 +456,6 @@ describe('parsers', function () {
       })
 
       it('handle big numbers', function () {
-        if (Parser.name === 'HiredisReplyParser') {
-          return this.skip()
-        }
         var replyCount = 0
         var number = 9007199254740991 // Number.MAX_SAFE_INTEGER
         function checkReply (reply) {
@@ -450,10 +473,58 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 2)
       })
 
-      it('handle big data', function () {
-        if (Parser.name === 'HiredisReplyParser') {
-          return this.skip()
+      it('handle big data with buffers', function (done) {
+        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+          'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
+          'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
+        var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
+        var startBigBuffer = new Buffer('\r\n$' + (128 * 1024) + '\r\n')
+        var startSecondBigBuffer = new Buffer('\r\n$' + (256 * 1024) + '\r\n')
+        var chunks = new Array(4)
+        for (var i = 0; i < 4; i++) {
+          chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
         }
+        var replyCount = 0
+        function checkReply (reply) {
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError,
+          returnBuffers: true
+        })
+        parser.execute(new Buffer('+test'))
+        assert.strictEqual(replyCount, 0)
+        parser.execute(startBigBuffer)
+        for (i = 0; i < 2; i++) {
+          if (Parser.name === 'JavascriptReplyParser') {
+            assert.strictEqual(parser.bufferCache.length, i + 1)
+          }
+          parser.execute(chunks[i])
+        }
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 2)
+        parser.execute(new Buffer('+test'))
+        assert.strictEqual(replyCount, 2)
+        parser.execute(startSecondBigBuffer)
+        for (i = 0; i < 4; i++) {
+          if (Parser.name === 'JavascriptReplyParser') {
+            assert.strictEqual(parser.bufferCache.length, i + 1)
+          }
+          parser.execute(chunks[i])
+        }
+        assert.strictEqual(replyCount, 3)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 4)
+        // Delay done so the bufferPool is cleared and tested
+        // If the buffer is not cleared, the coverage is not going to be at 100%
+        setTimeout(done, 600)
+      })
+
+      it('handle big data', function () {
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
@@ -476,7 +547,9 @@ describe('parsers', function () {
         })
         parser.execute(startBigBuffer)
         for (i = 0; i < 64; i++) {
-          assert.strictEqual(parser.bufferCache.length, i + 1)
+          if (Parser.name === 'JavascriptReplyParser') {
+            assert.strictEqual(parser.bufferCache.length, i + 1)
+          }
           parser.execute(chunks[i])
         }
         assert.strictEqual(replyCount, 0)
@@ -485,9 +558,6 @@ describe('parsers', function () {
       })
 
       it('handle big data 2', function () {
-        if (Parser.name === 'HiredisReplyParser') {
-          return this.skip()
-        }
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
@@ -510,12 +580,48 @@ describe('parsers', function () {
         parser.execute(new Buffer('+test'))
         parser.execute(startBigBuffer)
         for (i = 0; i < 64; i++) {
-          assert.strictEqual(parser.bufferCache.length, i + 1)
+          if (Parser.name === 'JavascriptReplyParser') {
+            assert.strictEqual(parser.bufferCache.length, i + 1)
+          }
           parser.execute(chunks[i])
         }
         assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer('\r\n'))
         assert.strictEqual(replyCount, 2)
+      })
+
+      it('handle big data 2 with buffers', function () {
+        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+          'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
+          'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
+          'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
+        var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
+        var startBigBuffer = new Buffer('$' + (4 * 1024 * 1024) + '\r\n')
+        var chunks = new Array(64)
+        for (var i = 0; i < 64; i++) {
+          chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
+        }
+        var replyCount = 0
+        function checkReply (reply) {
+          assert.strictEqual(reply.length, 4 * 1024 * 1024)
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError,
+          returnBuffers: true
+        })
+        parser.execute(startBigBuffer)
+        for (i = 0; i < 64; i++) {
+          if (Parser.name === 'JavascriptReplyParser') {
+            assert.strictEqual(parser.bufferCache.length, i + 1)
+          }
+          parser.execute(chunks[i])
+        }
+        assert.strictEqual(replyCount, 0)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 1)
       })
     })
   })
