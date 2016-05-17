@@ -4,7 +4,7 @@
 
 var assert = require('assert')
 var JavascriptParser = require('../')
-var HiredisParser = require('./hiredis')
+var HiredisParser = require('../lib/hiredis')
 var ReplyError = JavascriptParser.ReplyError
 var parsers = [JavascriptParser, HiredisParser]
 
