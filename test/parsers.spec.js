@@ -41,7 +41,7 @@ describe('parsers', function () {
           returnError: true
         })
       }, function (err) {
-        assert.strictEqual(err.message, 'The options argument contains unkown properties or properties of a wrong type')
+        assert.strictEqual(err.message, 'The options argument contains the property "returnError" that is either unkown or of a wrong type')
         assert(err instanceof TypeError)
         return true
       })
@@ -55,7 +55,7 @@ describe('parsers', function () {
           bla: undefined
         })
       }, function (err) {
-        assert.strictEqual(err.message, 'The options argument contains unkown properties or properties of a wrong type')
+        assert.strictEqual(err.message, 'The options argument contains the property "bla" that is either unkown or of a wrong type')
         assert(err instanceof TypeError)
         return true
       })
