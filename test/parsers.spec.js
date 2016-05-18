@@ -70,9 +70,11 @@ describe('parsers', function () {
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
           'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
-        var bigString = (new Array(Math.pow(2, 17) / lorem.length).join(lorem)) // Math.pow(2, 17) chars long
+        var bigString = (new Array(Math.pow(2, 17) / lorem.length + 1).join(lorem)) // Math.pow(2, 17) chars long
         var replyCount = 0
+        var sizes = [4, Math.pow(2, 17)]
         function checkReply (reply) {
+          assert.strictEqual(sizes[replyCount], reply.length)
           replyCount++
         }
         var parser = new Parser({
@@ -200,7 +202,7 @@ describe('parsers', function () {
       it('should handle \\r and \\n characters properly', function () {
         // If a string contains \r or \n characters it will always be send as a bulk string
         var replyCount = 0
-        var entries = ['foo\r', 'foo\r\nbar', '\r\nfoo', 'foo\r\n', 'foo']
+        var entries = ['foo\r', 'foo\r\nbar', '\r\nfoo', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
@@ -217,8 +219,16 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 4)
         parser.execute(new Buffer('+foo\r'))
         assert.strictEqual(replyCount, 4)
-        parser.execute(new Buffer('\n'))
+        parser.execute(new Buffer('\n$6\r\nfoobar\r'))
         assert.strictEqual(replyCount, 5)
+        parser.execute(new Buffer('\n$4\r\nfoo\r\r\n'))
+        assert.strictEqual(replyCount, 7)
+        parser.execute(new Buffer('$9\r\näfo'))
+        parser.execute(new Buffer('oö'))
+        parser.execute(new Buffer('ü\r'))
+        assert.strictEqual(replyCount, 7)
+        parser.execute(new Buffer('\n+abc\r\n'))
+        assert.strictEqual(replyCount, 9)
       })
 
       it('line breaks in the beginning of the last chunk', function () {
@@ -271,10 +281,9 @@ describe('parsers', function () {
         parser.execute(new Buffer(
           'abcdefghij\r\n' +
           '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij\r\n' +
-          '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghij'
+          '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij'
         ))
         assert.strictEqual(replyCount, 3)
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
         parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij\r'))
         assert.strictEqual(replyCount, 3)
         parser.execute(new Buffer('\n'))
