@@ -90,7 +90,7 @@ To handle protocol errors (this is very unlikely to happen) gracefully you shoul
 
 ## Contribute
 
-The parser is highly optimized but there may still be further optimizations possible. 
+The parser is highly optimized but there may still be further optimizations possible.
 
 ```
 npm install
