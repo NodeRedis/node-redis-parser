@@ -1,4 +1,4 @@
-## v.2.0.0 - 0x May, 2016
+## v.2.0.0 - 29 May, 2016
 
 The javascript parser got completly rewritten by [Michael Diarmid](https://github.com/Salakar) and [Ruben Bridgewater](https://github.com/BridgeAR) and is now a lot faster than the hiredis parser.
 Therefore the hiredis parser was deprecated and should only be used for testing purposes and benchmarking comparison.
