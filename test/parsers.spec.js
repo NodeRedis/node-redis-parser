@@ -64,6 +64,35 @@ describe('parsers', function () {
 
   parsers.forEach(function (Parser) {
     describe(Parser.name, function () {
+      it('multiple parsers do not interfere', function () {
+        var replyCount = 0
+        var results = [1234567890, 'foo bar baz', 'hello world']
+        function checkReply (reply) {
+          assert.strictEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parserOne = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        var parserTwo = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parserOne.execute(new Buffer('+foo '))
+        parserOne.execute(new Buffer('bar '))
+        assert.strictEqual(replyCount, 0)
+        parserTwo.execute(new Buffer(':1234567890\r\n+hello '))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('wor'))
+        parserOne.execute(new Buffer('baz\r\n'))
+        assert.strictEqual(replyCount, 2)
+        parserTwo.execute(new Buffer('ld\r\n'))
+        assert.strictEqual(replyCount, 3)
+      })
+
       it('chunks getting to big for the bufferPool', function () {
         // This is a edge case. Chunks should not exceed Math.pow(2, 16) bytes
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
