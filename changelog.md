@@ -1,3 +1,9 @@
+## v.2.0.1 - 0x Jun, 2016
+
+Bugfixes
+
+-  Fixed multiple parsers working concurrently resulting in faulty data in some cases
+
 ## v.2.0.0 - 29 May, 2016
 
 The javascript parser got completly rewritten by [Michael Diarmid](https://github.com/Salakar) and [Ruben Bridgewater](https://github.com/BridgeAR) and is now a lot faster than the hiredis parser.

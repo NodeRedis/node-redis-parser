@@ -11,7 +11,7 @@ var parsers = [JavascriptParser, HiredisParser]
 // Mock the not needed return functions
 function returnReply () { throw new Error('failed') }
 function returnError () { throw new Error('failed') }
-function returnFatalError () { throw new Error('failed') }
+function returnFatalError (err) { throw err }
 
 describe('parsers', function () {
   describe('general parser functionality', function () {
@@ -64,6 +64,68 @@ describe('parsers', function () {
 
   parsers.forEach(function (Parser) {
     describe(Parser.name, function () {
+      it('multiple parsers do not interfere', function () {
+        var replyCount = 0
+        var results = [1234567890, 'foo bar baz', 'hello world']
+        function checkReply (reply) {
+          assert.strictEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parserOne = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        var parserTwo = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parserOne.execute(new Buffer('+foo '))
+        parserOne.execute(new Buffer('bar '))
+        assert.strictEqual(replyCount, 0)
+        parserTwo.execute(new Buffer(':1234567890\r\n+hello '))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('wor'))
+        parserOne.execute(new Buffer('baz\r\n'))
+        assert.strictEqual(replyCount, 2)
+        parserTwo.execute(new Buffer('ld\r\n'))
+        assert.strictEqual(replyCount, 3)
+      })
+
+      it('multiple parsers do not interfere with bulk strings in arrays', function () {
+        var replyCount = 0
+        var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
+        function checkReply (reply) {
+          console.log(reply)
+          assert.deepEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parserOne = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        var parserTwo = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parserOne.execute(new Buffer('*2\r\n+foo\r\n$11\r\nfoo '))
+        parserOne.execute(new Buffer('bar '))
+        assert.strictEqual(replyCount, 0)
+        parserTwo.execute(new Buffer('*3\r\n:1234567890\r\n$11\r\nhello '))
+        assert.strictEqual(replyCount, 0)
+        parserOne.execute(new Buffer('baz\r\n+ttttttttttttttttttttttttt'))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('wor'))
+        parserTwo.execute(new Buffer('ld\r\n'))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('+the end\r\n'))
+        assert.strictEqual(replyCount, 2)
+        parserOne.execute(new Buffer('tttttttttttttttttttttt\r\n'))
+      })
+
       it('chunks getting to big for the bufferPool', function () {
         // This is a edge case. Chunks should not exceed Math.pow(2, 16) bytes
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
