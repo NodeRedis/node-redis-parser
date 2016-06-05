@@ -11,7 +11,7 @@ var parsers = [JavascriptParser, HiredisParser]
 // Mock the not needed return functions
 function returnReply () { throw new Error('failed') }
 function returnError () { throw new Error('failed') }
-function returnFatalError () { throw new Error('failed') }
+function returnFatalError (err) { throw err }
 
 describe('parsers', function () {
   describe('general parser functionality', function () {
@@ -91,6 +91,39 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 2)
         parserTwo.execute(new Buffer('ld\r\n'))
         assert.strictEqual(replyCount, 3)
+      })
+
+      it('multiple parsers do not interfere with bulk strings in arrays', function () {
+        var replyCount = 0
+        var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
+        function checkReply (reply) {
+          console.log(reply)
+          assert.deepEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parserOne = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        var parserTwo = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError
+        })
+        parserOne.execute(new Buffer('*2\r\n+foo\r\n$11\r\nfoo '))
+        parserOne.execute(new Buffer('bar '))
+        assert.strictEqual(replyCount, 0)
+        parserTwo.execute(new Buffer('*3\r\n:1234567890\r\n$11\r\nhello '))
+        assert.strictEqual(replyCount, 0)
+        parserOne.execute(new Buffer('baz\r\n+ttttttttttttttttttttttttt'))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('wor'))
+        parserTwo.execute(new Buffer('ld\r\n'))
+        assert.strictEqual(replyCount, 1)
+        parserTwo.execute(new Buffer('+the end\r\n'))
+        assert.strictEqual(replyCount, 2)
+        parserOne.execute(new Buffer('tttttttttttttttttttttt\r\n'))
       })
 
       it('chunks getting to big for the bufferPool', function () {
