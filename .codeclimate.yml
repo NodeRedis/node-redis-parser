@@ -3,3 +3,4 @@ languages:
 exclude_paths:
 - "benchmark/index.js"
 - "benchmark/old/javascript.js"
+- "test/parsers.spec.js"
