@@ -607,7 +607,10 @@ describe('parsers', function () {
           chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
         }
         var replyCount = 0
+        var replies = []
+        var jsParser = Parser.name === 'JavascriptRedisParser'
         function checkReply (reply) {
+          replies.push(reply)
           replyCount++
         }
         var parser = new Parser({
@@ -620,7 +623,7 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 0)
         parser.execute(startBigBuffer)
         for (i = 0; i < 2; i++) {
-          if (Parser.name === 'JavascriptReplyParser') {
+          if (jsParser) {
             assert.strictEqual(parser.bufferCache.length, i + 1)
           }
           parser.execute(chunks[i])
@@ -628,21 +631,27 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer('\r\n'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('+test'))
-        assert.strictEqual(replyCount, 2)
-        parser.execute(startSecondBigBuffer)
-        for (i = 0; i < 4; i++) {
-          if (Parser.name === 'JavascriptReplyParser') {
-            assert.strictEqual(parser.bufferCache.length, i + 1)
+        setTimeout(function () {
+          parser.execute(new Buffer('+test'))
+          assert.strictEqual(replyCount, 2)
+          parser.execute(startSecondBigBuffer)
+          for (i = 0; i < 4; i++) {
+            if (jsParser) {
+              assert.strictEqual(parser.bufferCache.length, i + 1)
+            }
+            parser.execute(chunks[i])
           }
-          parser.execute(chunks[i])
-        }
-        assert.strictEqual(replyCount, 3)
-        parser.execute(new Buffer('\r\n'))
-        assert.strictEqual(replyCount, 4)
+          assert.strictEqual(replyCount, 3)
+          parser.execute(new Buffer('\r\n'))
+          assert.strictEqual(replyCount, 4)
+        }, 200)
         // Delay done so the bufferPool is cleared and tested
-        // If the buffer is not cleared, the coverage is not going to be at 100%
-        setTimeout(done, 600)
+        // If the buffer is not cleared, the coverage is not going to be at 100
+        setTimeout(function () {
+          var totalBuffer = Buffer.concat(chunks).toString()
+          assert.strictEqual(replies[3].toString(), totalBuffer)
+          done()
+        }, (jsParser ? 1800 : 250))
       })
 
       it('handle big data', function () {
@@ -668,7 +677,7 @@ describe('parsers', function () {
         })
         parser.execute(startBigBuffer)
         for (i = 0; i < 64; i++) {
-          if (Parser.name === 'JavascriptReplyParser') {
+          if (Parser.name === 'JavascriptRedisParser') {
             assert.strictEqual(parser.bufferCache.length, i + 1)
           }
           parser.execute(chunks[i])
@@ -701,7 +710,7 @@ describe('parsers', function () {
         parser.execute(new Buffer('+test'))
         parser.execute(startBigBuffer)
         for (i = 0; i < 64; i++) {
-          if (Parser.name === 'JavascriptReplyParser') {
+          if (Parser.name === 'JavascriptRedisParser') {
             assert.strictEqual(parser.bufferCache.length, i + 1)
           }
           parser.execute(chunks[i])
@@ -735,7 +744,7 @@ describe('parsers', function () {
         })
         parser.execute(startBigBuffer)
         for (i = 0; i < 64; i++) {
-          if (Parser.name === 'JavascriptReplyParser') {
+          if (Parser.name === 'JavascriptRedisParser') {
             assert.strictEqual(parser.bufferCache.length, i + 1)
           }
           parser.execute(chunks[i])
