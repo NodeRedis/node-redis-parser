@@ -126,6 +126,32 @@ describe('parsers', function () {
         parserOne.execute(new Buffer('tttttttttttttttttttttt\r\n'))
       })
 
+      it('returned buffers do not get mutated', function () {
+        var replyCount = 0
+        var results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
+        function checkReply (reply) {
+          assert.deepEqual(results[replyCount], reply)
+          results[replyCount] = reply
+          replyCount++
+        }
+        var parser = new Parser({
+          returnReply: checkReply,
+          returnError: returnError,
+          returnFatalError: returnFatalError,
+          returnBuffers: true
+        })
+        parser.execute(new Buffer('$10\r\naaaaa'))
+        parser.execute(new Buffer('aaaaa\r\n'))
+        assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer('$10\r\nzzzzz'))
+        parser.execute(new Buffer('zzzzz\r\n'))
+        assert.strictEqual(replyCount, 2)
+        var str = results[0].toString()
+        for (var i = 0; i < str.length; i++) {
+          assert.strictEqual(str.charAt(i), 'a')
+        }
+      })
+
       it('chunks getting to big for the bufferPool', function () {
         // This is a edge case. Chunks should not exceed Math.pow(2, 16) bytes
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +

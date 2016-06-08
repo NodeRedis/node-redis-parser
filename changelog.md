@@ -1,4 +1,10 @@
-## v.2.0.1 - 0x Jun, 2016
+## v.2.0.2 - 08 Jun, 2016
+
+Bugfixes
+
+-  Fixed parser with returnBuffers option returning corrupted data
+
+## v.2.0.1 - 04 Jun, 2016
 
 Bugfixes
 
