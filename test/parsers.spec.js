@@ -97,7 +97,6 @@ describe('parsers', function () {
         var replyCount = 0
         var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
         function checkReply (reply) {
-          console.log(reply)
           assert.deepEqual(results[replyCount], reply)
           replyCount++
         }
