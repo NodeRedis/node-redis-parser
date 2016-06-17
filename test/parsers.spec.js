@@ -643,14 +643,14 @@ describe('parsers', function () {
           assert.strictEqual(replyCount, 3)
           parser.execute(new Buffer('\r\n'))
           assert.strictEqual(replyCount, 4)
-        }, 200)
+        }, 25)
         // Delay done so the bufferPool is cleared and tested
         // If the buffer is not cleared, the coverage is not going to be at 100
         setTimeout(function () {
           var totalBuffer = Buffer.concat(chunks).toString()
           assert.strictEqual(replies[3].toString(), totalBuffer)
           done()
-        }, (jsParser ? 1800 : 250))
+        }, (jsParser ? 1500 : 50))
       })
 
       it('handle big data', function () {
@@ -719,20 +719,22 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 2)
       })
 
-      it('handle big data 2 with buffers', function () {
+      it('handle big data 2 with buffers', function (done) {
+        this.timeout(4000)
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
           'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
         var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
-        var startBigBuffer = new Buffer('$' + (4 * 1024 * 1024) + '\r\n')
-        var chunks = new Array(64)
-        for (var i = 0; i < 64; i++) {
+        var startBigBuffer = new Buffer('$' + (200 * 1024 * 1024) + '\r\n')
+        var chunks = new Array(3200)
+        for (var i = 0; i < 3200; i++) {
           chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
         }
         var replyCount = 0
+        var replyLen = [200 * 1024 * 1024, 11, 11]
         function checkReply (reply) {
-          assert.strictEqual(reply.length, 4 * 1024 * 1024)
+          assert.strictEqual(reply.length, replyLen[replyCount])
           replyCount++
         }
         var parser = new Parser({
@@ -742,15 +744,21 @@ describe('parsers', function () {
           returnBuffers: true
         })
         parser.execute(startBigBuffer)
-        for (i = 0; i < 64; i++) {
+        for (i = 0; i < 3200; i++) {
           if (Parser.name === 'JavascriptRedisParser') {
             assert.strictEqual(parser.bufferCache.length, i + 1)
           }
           parser.execute(chunks[i])
         }
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(new Buffer('\r\n+hello world'))
         assert.strictEqual(replyCount, 1)
+        parser.execute(new Buffer('\r\n$11\r\nhuge'))
+        setTimeout(function () {
+          parser.execute(new Buffer(' buffer\r\n'))
+          assert.strictEqual(replyCount, 3)
+          done()
+        }, 600)
       })
     })
   })
