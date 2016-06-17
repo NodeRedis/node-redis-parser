@@ -1,3 +1,9 @@
+## v.2.0.3 - 17 Jun, 2016
+
+Bugfixes
+
+-  Fixed parser not working with huge buffers (e.g. 300 MB)
+
 ## v.2.0.2 - 08 Jun, 2016
 
 Bugfixes
