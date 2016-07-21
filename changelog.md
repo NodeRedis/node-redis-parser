@@ -1,3 +1,9 @@
+## v.2.0.4 - 21 Jul, 2016
+
+Bugfixes
+
+-  Fixed multi byte characters getting corrupted
+
 ## v.2.0.3 - 17 Jun, 2016
 
 Bugfixes

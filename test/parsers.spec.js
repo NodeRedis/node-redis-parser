@@ -289,7 +289,7 @@ describe('parsers', function () {
       it('should handle \\r and \\n characters properly', function () {
         // If a string contains \r or \n characters it will always be send as a bulk string
         var replyCount = 0
-        var entries = ['foo\r', 'foo\r\nbar', '\r\nfoo', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
+        var entries = ['foo\r', 'foo\r\nbar', '\r\nСанкт-Пет', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
@@ -300,9 +300,11 @@ describe('parsers', function () {
           returnFatalError: returnFatalError
         })
 
-        parser.execute(new Buffer('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$5\r\n\r\n'))
+        parser.execute(new Buffer('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$19\r\n\r\n'))
+        parser.execute(new Buffer([208, 161, 208, 176, 208, 189, 208]))
+        parser.execute(new Buffer([186, 209, 130, 45, 208, 159, 208, 181, 209, 130]))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('foo\r\n$5\r\nfoo\r\n\r\n'))
+        parser.execute(new Buffer('\r\n$5\r\nfoo\r\n\r\n'))
         assert.strictEqual(replyCount, 4)
         parser.execute(new Buffer('+foo\r'))
         assert.strictEqual(replyCount, 4)
