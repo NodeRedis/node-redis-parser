@@ -722,7 +722,7 @@ describe('parsers', function () {
       })
 
       it('handle big data 2 with buffers', function (done) {
-        this.timeout(4000)
+        this.timeout(5000)
         var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
