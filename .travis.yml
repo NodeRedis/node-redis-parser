@@ -9,10 +9,9 @@ addons:
     packages:
     - g++-4.8
 node_js:
-  - "0.10"
-  - "0.12"
   - "4"
   - "6"
+  - "7"
 install:
   - npm install
   - npm install hiredis
