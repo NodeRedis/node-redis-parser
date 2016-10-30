@@ -4,6 +4,7 @@ Features
 
 -  Improve parser errors by adding more detailed information to them
 -  Accept manipulated Object.prototypes
+-  Unref the interval if used
 
 ## v.2.0.4 - 21 Jul, 2016
 
