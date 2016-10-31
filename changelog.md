@@ -2,7 +2,9 @@
 
 Bugfixes
 
--  Fix erroneous added const to var to support Node.js 0.10
+-  Remove erroneously added const to support Node.js 0.10
+
+## v.2.1.0 - 30 Oct, 2016
 
 Features
 
