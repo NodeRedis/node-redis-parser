@@ -1,4 +1,8 @@
-## v.2.1.0 - 30 Oct, 2016
+## v.2.1.1 - 31 Oct, 2016
+
+Bugfixes
+
+-  Fix erroneous added const to var to support Node.js 0.10
 
 Features
 
