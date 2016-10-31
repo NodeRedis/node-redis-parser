@@ -1,3 +1,9 @@
+## v.2.2.0 - 31 Oct, 2016
+
+Features
+
+-  Improve `stringNumbers` parsing performance by up to 100%
+
 ## v.2.1.1 - 31 Oct, 2016
 
 Bugfixes
