@@ -36,7 +36,6 @@ var stringBuffer = new Buffer('+testing a simple string\r\n')
 var integerBuffer = new Buffer(':1237884\r\n')
 var bigIntegerBuffer = new Buffer(':184467440737095516171234567890\r\n') // 2^64 + 1
 var errorBuffer = new Buffer('-Error ohnoesitbroke\r\n')
-var arrayBuffer = new Buffer('*1\r\n*1\r\n$1\r\na\r\n')
 var endBuffer = new Buffer('\r\n')
 var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
   'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
@@ -49,15 +48,29 @@ for (var i = 0; i < 64; i++) {
   chunks[i] = new Buffer(shuffle(bigStringArray).join(' ') + '.') // Math.pow(2, 16) chars long
 }
 
-var bigArraySize = 100
-var bigArray = '*' + bigArraySize + '\r\n'
-for (i = 0; i < bigArraySize; i++) {
-  bigArray += '$'
-  var size = (Math.random() * 10 | 0) + 1
-  bigArray += size + '\r\n' + lorem.slice(0, size) + '\r\n'
+var arraySize = 100
+var array = '*' + arraySize + '\r\n'
+var size = 0
+for (i = 0; i < arraySize; i++) {
+  array += '$'
+  size = (Math.random() * 10 | 0) + 1
+  array += size + '\r\n' + lorem.slice(0, size) + '\r\n'
 }
 
-var bigArrayBuffer = new Buffer(bigArray)
+var arrayBuffer = new Buffer(array)
+
+var bigArraySize = 1000
+var bigArrayChunks = [new Buffer('*' + bigArraySize)]
+for (i = 0; i < bigArraySize; i++) {
+  size = (Math.random() * 10000 | 0)
+  if (i % 2) {
+    bigArrayChunks.push(new Buffer('\r\n$' + size + '\r\n' + Array(size + 1).join('a')))
+  } else {
+    bigArrayChunks.push(new Buffer('\r\n+' + Array(size + 1).join('b')))
+  }
+}
+bigArrayChunks.push(new Buffer('\r\n'))
+
 var chunkedStringPart1 = new Buffer('+foobar')
 var chunkedStringPart2 = new Buffer('bazEND\r\n')
 
@@ -257,22 +270,24 @@ suite.add('NEW BUF: * array', function () {
   parserBuffer.execute(arrayBuffer)
 })
 
-// BIG ARRAYS
-
-suite.add('\nOLD CODE: * bigArray', function () {
-  parserOld.execute(bigArrayBuffer)
-})
+// BIG ARRAYS (running the old parser is to slow)
 
 suite.add('HIREDIS: * bigArray', function () {
-  parserHiRedis.execute(bigArrayBuffer)
+  for (var i = 0; i < bigArrayChunks.length; i++) {
+    parserHiRedis.execute(bigArrayChunks[i])
+  }
 })
 
 suite.add('NEW CODE: * bigArray', function () {
-  parser.execute(bigArrayBuffer)
+  for (var i = 0; i < bigArrayChunks.length; i++) {
+    parser.execute(bigArrayChunks[i])
+  }
 })
 
 suite.add('NEW BUF: * bigArray', function () {
-  parserBuffer.execute(bigArrayBuffer)
+  for (var i = 0; i < bigArrayChunks.length; i++) {
+    parserBuffer.execute(bigArrayChunks[i])
+  }
 })
 
 // ERRORS
