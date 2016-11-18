@@ -29,6 +29,7 @@ var myParser = new Parser(options);
 * `returnError`: *function*; mandatory
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
+* `stringNumbers`: *boolean*; optional, defaults to false
 
 ### Example
 
@@ -66,7 +67,7 @@ You do not have to use the returnFatalError function. Fatal errors will be retur
 
 And if you want to return buffers instead of strings, you can do this by adding the `returnBuffers` option.
 
-Big numbers that are too large for JS are automatically stringified.
+If you handle with big numbers that are to large for JS (Number.MAX_SAFE_INTEGER === 2^53 - 16) please use the `stringNumbers` option. That way all numbers are going to be returned as String and you can handle them safely.
 
 ```js
 // Same functions as in the first example
@@ -78,7 +79,8 @@ var parser = new Parser({
     returnError: function(err) {
         lib.returnError(err);
     },
-    returnBuffers: true // All strings are returned as buffer e.g. <Buffer 48 65 6c 6c 6f>
+    returnBuffers: true, // All strings are returned as Buffer e.g. <Buffer 48 65 6c 6c 6f>
+    stringNumbers: true // All numbers are returned as String
 });
 
 // The streamHandler as above

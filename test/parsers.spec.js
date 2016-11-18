@@ -541,7 +541,7 @@ describe('parsers', function () {
           return this.skip()
         }
         var replyCount = 0
-        var entries = ['123', '590295810358705700002', '-99999999999999999']
+        var entries = ['123', '590295810358705700002', '-99999999999999999', '4294967290', '90071992547409920', '10000040000000000000000000000000000000020']
         function checkReply (reply) {
           assert.strictEqual(typeof reply, 'string')
           assert.strictEqual(reply, entries[replyCount])
@@ -551,8 +551,8 @@ describe('parsers', function () {
           returnReply: checkReply,
           stringNumbers: true
         })
-        parser.execute(new Buffer(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n'))
-        assert.strictEqual(replyCount, 3)
+        parser.execute(new Buffer(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
+        assert.strictEqual(replyCount, 6)
       })
 
       it('handle big numbers', function () {
