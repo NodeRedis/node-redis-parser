@@ -6,14 +6,14 @@ Features
 
 This case is a magnitude faster than before
 
-OLD STR: * big array x 1.09 ops/sec ±2.15% (7 runs sampled)
-OLD BUF: * big array x 1.23 ops/sec ±2.67% (8 runs sampled)
+    OLD STR: * big array x 1.09 ops/sec ±2.15% (7 runs sampled)
+    OLD BUF: * big array x 1.23 ops/sec ±2.67% (8 runs sampled)
 
-NEW STR: * big array x 273 ops/sec ±2.09% (85 runs sampled)
-NEW BUF: * big array x 259 ops/sec ±1.32% (85 runs sampled)
-(~10mb array with 1000 entries)
+    NEW STR: * big array x 273 ops/sec ±2.09% (85 runs sampled)
+    NEW BUF: * big array x 259 ops/sec ±1.32% (85 runs sampled)
+    (~10mb array with 1000 entries)
 
-## v.2.2.0 - 31 Oct, 2016
+## v.2.2.0 - 18 Nov, 2016
 
 Features
 
