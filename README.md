@@ -11,9 +11,7 @@ A high performance javascript redis parser built for [node_redis](https://github
 
 Install with [NPM](https://npmjs.org/):
 
-```
-npm install redis-parser
-```
+    npm install redis-parser
 
 ## Usage
 
@@ -94,11 +92,57 @@ To handle protocol errors (this is very unlikely to happen) gracefully you shoul
 
 The parser is highly optimized but there may still be further optimizations possible.
 
-```
-npm install
-npm test
-npm run benchmark
-```
+    npm install
+    npm test
+    npm run benchmark
+
+Currently the benchmark compares the performance against the hiredis parser:
+
+    HIREDIS: $ multiple chunks in a bulk string x 867,643 ops/sec ±1.39% (82 runs sampled)
+    HIREDIS BUF: $ multiple chunks in a bulk string x 591,398 ops/sec ±1.48% (83 runs sampled)
+    JS PARSER: $ multiple chunks in a bulk string x 942,834 ops/sec ±0.87% (90 runs sampled)
+    JS PARSER BUF: $ multiple chunks in a bulk string x 1,081,096 ops/sec ±1.81% (85 runs sampled)
+
+    HIREDIS: + multiple chunks in a string x 1,785,222 ops/sec ±0.59% (92 runs sampled)
+    HIREDIS BUF: + multiple chunks in a string x 902,391 ops/sec ±1.62% (88 runs sampled)
+    JS PARSER: + multiple chunks in a string x 1,936,709 ops/sec ±1.07% (90 runs sampled)
+    JS PARSER BUF: + multiple chunks in a string x 1,954,798 ops/sec ±0.84% (91 runs sampled)
+
+    HIREDIS: $ 4mb bulk string x 344 ops/sec ±1.40% (85 runs sampled)
+    HIREDIS BUF: $ 4mb bulk string x 555 ops/sec ±1.85% (80 runs sampled)
+    JS PARSER: $ 4mb bulk string x 834 ops/sec ±1.23% (81 runs sampled)
+    JS PARSER BUF: $ 4mb bulk string x 620 ops/sec ±2.40% (59 runs sampled)
+
+    HIREDIS: + simple string x 2,344,042 ops/sec ±1.45% (91 runs sampled)
+    HIREDIS BUF: + simple string x 993,081 ops/sec ±1.87% (83 runs sampled)
+    JS PARSER: + simple string x 4,431,517 ops/sec ±1.86% (88 runs sampled)
+    JS PARSER BUF: + simple string x 5,259,552 ops/sec ±0.61% (96 runs sampled)
+
+    HIREDIS: : integer x 2,376,642 ops/sec ±0.30% (92 runs sampled)
+    JS PARSER: : integer x 17,765,077 ops/sec ±0.53% (93 runs sampled)
+    JS PARSER STR: : integer x 13,110,365 ops/sec ±0.67% (91 runs sampled)
+
+    HIREDIS: : big integer x 2,010,124 ops/sec ±0.87% (86 runs sampled)
+    JS PARSER: : big integer x 10,277,063 ops/sec ±0.69% (91 runs sampled)
+    JS PARSER STR: : big integer x 4,492,626 ops/sec ±0.67% (94 runs sampled)
+
+    HIREDIS: * array x 43,763 ops/sec ±0.84% (94 runs sampled)
+    HIREDIS BUF: * array x 13,893 ops/sec ±1.05% (85 runs sampled)
+    JS PARSER: * array x 50,825 ops/sec ±1.92% (80 runs sampled)
+    JS PARSER BUF: * array x 72,546 ops/sec ±0.80% (94 runs sampled)
+
+    HIREDIS: * big array x 265 ops/sec ±1.46% (86 runs sampled)
+    HIREDIS BUF: * big array x 226 ops/sec ±3.21% (75 runs sampled)
+    JS PARSER: * big array x 201 ops/sec ±0.95% (83 runs sampled)
+    JS PARSER BUF: * big array x 244 ops/sec ±2.65% (81 runs sampled)
+
+    HIREDIS: - error x 81,563 ops/sec ±0.51% (93 runs sampled)
+    JS PARSER: - error x 155,225 ops/sec ±0.57% (95 runs sampled)
+
+    Platform info:
+    Ubuntu 16.10
+    Node.js 7.1.0
+    Intel(R) Core(TM) i7-5600U CPU
 
 ## License
 
