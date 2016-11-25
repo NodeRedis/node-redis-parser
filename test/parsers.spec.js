@@ -155,6 +155,35 @@ describe('parsers', function () {
         parserOne.execute(new Buffer('tttttttttttttttttttttt\r\n'))
       })
 
+      it('weird things', function () {
+        var replyCount = 0
+        var results = [[], '', [0, null, '', 0, '', []], 9223372036854776, '☃', [1, 'OK', null]]
+        function checkReply (reply) {
+          assert.deepEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parser = newParser(checkReply)
+        parser.execute(new Buffer('*0\r\n$0\r\n\r\n*6\r\n:\r\n$-1\r\n$0\r\n\r\n:-\r\n$'))
+        assert.strictEqual(replyCount, 2)
+        parser.execute(new Buffer('\r\n\r\n*\r\n:9223372036854775\r\n$' + Buffer.byteLength('☃') + '\r\n☃\r\n'))
+        assert.strictEqual(replyCount, 5)
+        parser.execute(new Buffer('*3\r\n:1\r\n+OK\r\n$-1\r\n'))
+        assert.strictEqual(replyCount, 6)
+      })
+
+      it('weird things 2', function () {
+        var replyCount = 0
+        var results = [null, 12345, [], null, 't']
+        function checkReply (reply) {
+          assert.deepEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parser = newParser(checkReply)
+        parser.execute(new Buffer('$-5'))
+        assert.strictEqual(replyCount, 0)
+        parser.execute(new Buffer('\r\n:12345\r\n*-\r\n*-1\r\n+t\r\n'))
+      })
+
       it('returned buffers do not get mutated', function () {
         var replyCount = 0
         var results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
