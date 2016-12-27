@@ -6,6 +6,7 @@ var assert = require('assert')
 var JavascriptParser = require('../')
 var HiredisParser = require('../lib/hiredis')
 var ReplyError = JavascriptParser.ReplyError
+var RedisError = JavascriptParser.RedisError
 var parsers = [HiredisParser, JavascriptParser]
 
 // Mock the not needed return functions
@@ -236,6 +237,7 @@ describe('parsers', function () {
           assert.strictEqual(typeof this.log, 'function')
           assert.strictEqual(err.message, 'Protocol error, got "a" as reply type byte')
           assert.strictEqual(err.name, 'ReplyError')
+          assert(err instanceof RedisError)
           assert(err instanceof ReplyError)
           assert(err instanceof Error)
           replyCount++
