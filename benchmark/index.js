@@ -62,6 +62,15 @@ for (i = 0; i < arraySize; i++) {
 
 var arrayBuffer = new Buffer(array)
 
+var arrayOfArraysSize = 100
+var arrayOfArrays = '*' + arrayOfArraysSize + '\r\n'
+for (i = 0; i < arrayOfArraysSize; i++) {
+  arrayOfArrays += '$'
+  arrayOfArrays += array
+}
+
+var arrayOfArraysBuffer = new Buffer(arrayOfArrays)
+
 var bigArraySize = 1000
 var bigArrayChunks = [new Buffer('*' + bigArraySize * 2)]
 for (i = 0; i < bigArraySize; i++) {
@@ -249,6 +258,24 @@ suite.add('JS PARSER: * array', function () {
 
 suite.add('JS PARSER BUF: * array', function () {
   parserBuffer.execute(arrayBuffer)
+})
+
+// NESTED ARRAYS
+
+suite.add('\nHIREDIS: * nested array', function () {
+  parserHiRedis.execute(arrayOfArraysBuffer)
+})
+
+suite.add('HIREDIS BUF: * nested array', function () {
+  parserHiRedisBuffer.execute(arrayOfArraysBuffer)
+})
+
+suite.add('JS PARSER: * nested array', function () {
+  parser.execute(arrayOfArraysBuffer)
+})
+
+suite.add('JS PARSER BUF: * nested array', function () {
+  parserBuffer.execute(arrayOfArraysBuffer)
 })
 
 // BIG ARRAYS
