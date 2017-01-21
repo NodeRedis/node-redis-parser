@@ -424,6 +424,30 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 1)
       })
 
+      it('multiple chunks with nested partial arrays', function () {
+        var predefinedData = [
+          'abcdefghijabcdefghij',
+          100,
+          '1234567890',
+          100
+        ]
+        function checkReply (reply) {
+          assert.strictEqual(reply.length, 1)
+          for (var i = 0; i < reply[0].length; i++) {
+            assert.strictEqual(reply[0][i], predefinedData[i])
+          }
+          replyCount++
+        }
+        var parser = newParser({
+          returnReply: checkReply
+        })
+        parser.execute(new Buffer('*1\r\n*4\r\n+abcdefghijabcdefghij\r\n:100'))
+        parser.execute(new Buffer('\r\n$10\r\n1234567890\r\n:100'))
+        assert.strictEqual(replyCount, 0)
+        parser.execute(new Buffer('\r\n'))
+        assert.strictEqual(replyCount, 1)
+      })
+
       it('return normal errors', function () {
         function checkReply (reply) {
           assert.strictEqual(reply.message, 'Error message')
