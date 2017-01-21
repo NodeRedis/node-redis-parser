@@ -10,3 +10,4 @@ coverage
 test
 .travis.yml
 .gitignore
+*.log
