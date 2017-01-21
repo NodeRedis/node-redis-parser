@@ -1,5 +1,11 @@
 ## v.2.4.0 - xx Jan, 2017
 
+Features
+
+-  Added `reset` function to reset the parser to it's initial values
+-  Added `setReturnBuffers` function to reset the returnBuffers option (Only for the JSParser)
+-  Added `setStringNumbers` function to reset the stringNumbers option (Only for the JSParser)
+
 Bugfixes
 
 -  Parsing time for big nested arrays is now linear

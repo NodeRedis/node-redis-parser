@@ -54,6 +54,79 @@ describe('parsers', function () {
         bla: 6
       })
     })
+
+    it('reset returnBuffers option', function () {
+      var res = 'test'
+      var replyCount = 0
+      function checkReply (reply) {
+        if (replyCount === 0) {
+          assert.strictEqual(reply, res)
+        } else {
+          assert.strictEqual(reply.inspect(), Buffer(res).inspect())
+        }
+        replyCount++
+      }
+      var parser = JavascriptParser({
+        returnReply: checkReply,
+        returnError: returnError
+      })
+      parser.execute(new Buffer('+test\r\n'))
+      parser.execute(new Buffer('+test'))
+      parser.setReturnBuffers(true)
+      assert.strictEqual(replyCount, 1)
+      parser.execute(new Buffer('\r\n'))
+      assert.strictEqual(replyCount, 2)
+    })
+
+    it('reset returnBuffers option with wrong input', function () {
+      var parser = JavascriptParser({
+        returnReply: returnReply,
+        returnError: returnError
+      })
+      assert.throws(function () {
+        parser.setReturnBuffers(null)
+      }, function (err) {
+        assert.strictEqual(err.message, 'The returnBuffers argument has to be a boolean')
+        assert(err instanceof TypeError)
+        return true
+      })
+    })
+
+    it('reset stringNumbers option', function () {
+      var res = 123
+      var replyCount = 0
+      function checkReply (reply) {
+        if (replyCount === 0) {
+          assert.strictEqual(reply, res)
+        } else {
+          assert.strictEqual(reply, String(res))
+        }
+        replyCount++
+      }
+      var parser = JavascriptParser({
+        returnReply: checkReply,
+        returnError: returnError
+      })
+      parser.execute(new Buffer(':123\r\n'))
+      assert.strictEqual(replyCount, 1)
+      parser.setStringNumbers(true)
+      parser.execute(new Buffer(':123\r\n'))
+      assert.strictEqual(replyCount, 2)
+    })
+
+    it('reset stringNumbers option with wrong input', function () {
+      var parser = JavascriptParser({
+        returnReply: returnReply,
+        returnError: returnError
+      })
+      assert.throws(function () {
+        parser.setStringNumbers(null)
+      }, function (err) {
+        assert.strictEqual(err.message, 'The stringNumbers argument has to be a boolean')
+        assert(err instanceof TypeError)
+        return true
+      })
+    })
   })
 
   parsers.forEach(function (Parser) {
@@ -98,6 +171,18 @@ describe('parsers', function () {
       var replyCount = 0
       beforeEach(function () {
         replyCount = 0
+      })
+
+      it('reset parser', function () {
+        function checkReply (reply) {
+          assert.strictEqual(reply, 'test')
+          replyCount++
+        }
+        var parser = newParser(checkReply)
+        parser.execute(new Buffer('$123\r\naaa'))
+        parser.reset()
+        parser.execute(new Buffer('+test\r\n'))
+        assert.strictEqual(replyCount, 1)
       })
 
       it('should not set the bufferOffset to a negative value', function (done) {

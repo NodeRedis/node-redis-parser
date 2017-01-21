@@ -21,13 +21,19 @@ var Parser = require('redis-parser');
 var myParser = new Parser(options);
 ```
 
-### Possible options
+### Options
 
 * `returnReply`: *function*; mandatory
 * `returnError`: *function*; mandatory
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
 * `stringNumbers`: *boolean*; optional, defaults to false
+
+### Functions
+
+* `reset()`: reset the parser to it's initial state
+* `setReturnBuffers(boolean)`: (JSParser only) set the returnBuffers option on/off without resetting the parser
+* `setStringNumbers(boolean)`: (JSParser only) set the stringNumbers option on/off without resetting the parser
 
 ### Example
 
