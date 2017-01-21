@@ -63,7 +63,7 @@ for (i = 0; i < arraySize; i++) {
 var arrayBuffer = new Buffer(array)
 
 var bigArraySize = 1000
-var bigArrayChunks = [new Buffer('*' + bigArraySize * 2)]
+var bigArrayChunks = [new Buffer('*1\r\n*1\r\n*' + bigArraySize * 2)]
 for (i = 0; i < bigArraySize; i++) {
   size = (Math.random() * 10000 | 0)
   if (i % 2) {
@@ -251,27 +251,27 @@ suite.add('JS PARSER BUF: * array', function () {
   parserBuffer.execute(arrayBuffer)
 })
 
-// BIG ARRAYS
+// BIG NESTED ARRAYS
 
-suite.add('\nHIREDIS: * big array', function () {
+suite.add('\nHIREDIS: * big nested array', function () {
   for (var i = 0; i < bigArrayChunks.length; i++) {
     parserHiRedis.execute(bigArrayChunks[i])
   }
 })
 
-suite.add('HIREDIS BUF: * big array', function () {
+suite.add('HIREDIS BUF: * big nested array', function () {
   for (var i = 0; i < bigArrayChunks.length; i++) {
     parserHiRedisBuffer.execute(bigArrayChunks[i])
   }
 })
 
-suite.add('JS PARSER: * big array', function () {
+suite.add('JS PARSER: * big nested array', function () {
   for (var i = 0; i < bigArrayChunks.length; i++) {
     parser.execute(bigArrayChunks[i])
   }
 })
 
-suite.add('JS PARSER BUF: * big array', function () {
+suite.add('JS PARSER BUF: * big nested array', function () {
   for (var i = 0; i < bigArrayChunks.length; i++) {
     parserBuffer.execute(bigArrayChunks[i])
   }

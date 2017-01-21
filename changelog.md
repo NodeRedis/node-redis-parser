@@ -1,3 +1,9 @@
+## v.2.4.0 - xx Jan, 2017
+
+Bugfixes
+
+-  Parsing time for big nested arrays is now linear
+
 ## v.2.3.0 - 25 Nov, 2016
 
 Features
