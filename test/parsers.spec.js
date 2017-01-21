@@ -95,6 +95,11 @@ describe('parsers', function () {
     }
 
     describe(Parser.name, function () {
+      var replyCount = 0
+      beforeEach(function () {
+        replyCount = 0
+      })
+
       it('should not set the bufferOffset to a negative value', function (done) {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
@@ -111,7 +116,6 @@ describe('parsers', function () {
       })
 
       it('multiple parsers do not interfere', function () {
-        var replyCount = 0
         var results = [1234567890, 'foo bar baz', 'hello world']
         function checkReply (reply) {
           assert.strictEqual(results[replyCount], reply)
@@ -132,7 +136,6 @@ describe('parsers', function () {
       })
 
       it('multiple parsers do not interfere with bulk strings in arrays', function () {
-        var replyCount = 0
         var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
         function checkReply (reply) {
           assert.deepEqual(results[replyCount], reply)
@@ -156,7 +159,6 @@ describe('parsers', function () {
       })
 
       it('returned buffers do not get mutated', function () {
-        var replyCount = 0
         var results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
         function checkReply (reply) {
           assert.deepEqual(results[replyCount], reply)
@@ -183,7 +185,6 @@ describe('parsers', function () {
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
           'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
         var bigString = (new Array(Math.pow(2, 17) / lorem.length + 1).join(lorem)) // Math.pow(2, 17) chars long
-        var replyCount = 0
         var sizes = [4, Math.pow(2, 17)]
         function checkReply (reply) {
           assert.strictEqual(sizes[replyCount], reply.length)
@@ -201,7 +202,6 @@ describe('parsers', function () {
       })
 
       it('handles multi-bulk reply and check context binding', function () {
-        var replyCount = 0
         function Abc () {}
         Abc.prototype.checkReply = function (reply) {
           assert.strictEqual(typeof this.log, 'function')
@@ -226,11 +226,10 @@ describe('parsers', function () {
         parser.execute(new Buffer('*1\r\n*1\r\n'))
         parser.execute(new Buffer('$1\r\na\r\n'))
 
-        assert.equal(replyCount, 3, 'check reply should have been called three times')
+        assert.strictEqual(replyCount, 3, 'check reply should have been called three times')
       })
 
       it('parser error', function () {
-        var replyCount = 0
         function Abc () {}
         Abc.prototype.checkReply = function (err) {
           assert.strictEqual(typeof this.log, 'function')
@@ -249,11 +248,10 @@ describe('parsers', function () {
         })
 
         parser.execute(new Buffer('a*1\r*1\r$1`zasd\r\na'))
-        assert.equal(replyCount, 1)
+        assert.strictEqual(replyCount, 1)
       })
 
       it('parser error resets the buffer', function () {
-        var replyCount = 0
         var errCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply.length, 1)
@@ -283,7 +281,6 @@ describe('parsers', function () {
       })
 
       it('parser error v3 without returnFatalError specified', function () {
-        var replyCount = 0
         var errCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply[0], 'OK')
@@ -305,7 +302,6 @@ describe('parsers', function () {
 
       it('should handle \\r and \\n characters properly', function () {
         // If a string contains \r or \n characters it will always be send as a bulk string
-        var replyCount = 0
         var entries = ['foo\r', 'foo\r\nbar', '\r\nСанкт-Пет', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
@@ -334,7 +330,6 @@ describe('parsers', function () {
       })
 
       it('line breaks in the beginning of the last chunk', function () {
-        var replyCount = 0
         function checkReply (reply) {
           assert.deepEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
           replyCount++
@@ -342,17 +337,16 @@ describe('parsers', function () {
         var parser = newParser(checkReply)
 
         parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na'))
-        assert.equal(replyCount, 0)
+        assert.strictEqual(replyCount, 0)
 
         parser.execute(new Buffer('\r\n*1\r\n*1\r'))
-        assert.equal(replyCount, 1)
+        assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer('\n$1\r\na\r\n*1\r\n*1\r\n$1\r\na\r\n'))
 
-        assert.equal(replyCount, 3, 'check reply should have been called three times')
+        assert.strictEqual(replyCount, 3, 'check reply should have been called three times')
       })
 
       it('multiple chunks in a bulk string', function () {
-        var replyCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply, 'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij')
           replyCount++
@@ -382,11 +376,10 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 3)
         parser.execute(new Buffer('\n'))
 
-        assert.equal(replyCount, 4, 'check reply should have been called three times')
+        assert.strictEqual(replyCount, 4, 'check reply should have been called three times')
       })
 
       it('multiple chunks with arrays different types', function () {
-        var replyCount = 0
         var predefinedData = [
           'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij',
           'test',
@@ -432,9 +425,8 @@ describe('parsers', function () {
       })
 
       it('return normal errors', function () {
-        var replyCount = 0
         function checkReply (reply) {
-          assert.equal(reply.message, 'Error message')
+          assert.strictEqual(reply.message, 'Error message')
           replyCount++
         }
         var parser = newParser({
@@ -449,9 +441,8 @@ describe('parsers', function () {
       })
 
       it('return null for empty arrays and empty bulk strings', function () {
-        var replyCount = 0
         function checkReply (reply) {
-          assert.equal(reply, null)
+          assert.strictEqual(reply, null)
           replyCount++
         }
         var parser = newParser(checkReply)
@@ -465,9 +456,8 @@ describe('parsers', function () {
       })
 
       it('return value even if all chunks are only 1 character long', function () {
-        var replyCount = 0
         function checkReply (reply) {
-          assert.equal(reply, 1)
+          assert.strictEqual(reply, 1)
           replyCount++
         }
         var parser = newParser(checkReply)
@@ -483,9 +473,8 @@ describe('parsers', function () {
       })
 
       it('do not return before \\r\\n', function () {
-        var replyCount = 0
         function checkReply (reply) {
-          assert.equal(reply, 1)
+          assert.strictEqual(reply, 1)
           replyCount++
         }
         var parser = newParser(checkReply)
@@ -501,7 +490,6 @@ describe('parsers', function () {
       })
 
       it('return data as buffer if requested', function () {
-        var replyCount = 0
         function checkReply (reply) {
           if (Array.isArray(reply)) {
             reply = reply[0]
@@ -521,7 +509,6 @@ describe('parsers', function () {
       })
 
       it('handle special case buffer sizes properly', function () {
-        var replyCount = 0
         var entries = ['test test ', 'test test test test ', 1234]
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
@@ -540,7 +527,6 @@ describe('parsers', function () {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
         }
-        var replyCount = 0
         var entries = ['123', '590295810358705700002', '-99999999999999999', '4294967290', '90071992547409920', '10000040000000000000000000000000000000020']
         function checkReply (reply) {
           assert.strictEqual(typeof reply, 'string')
@@ -556,7 +542,6 @@ describe('parsers', function () {
       })
 
       it('handle big numbers', function () {
-        var replyCount = 0
         var number = 9007199254740991 // Number.MAX_SAFE_INTEGER
         function checkReply (reply) {
           assert.strictEqual(reply, number++)
@@ -571,7 +556,6 @@ describe('parsers', function () {
 
       it('handle big data with buffers', function (done) {
         var chunks
-        var replyCount = 0
         var replies = []
         var jsParser = Parser.name === 'JavascriptRedisParser'
         function checkReply (reply) {
@@ -603,7 +587,6 @@ describe('parsers', function () {
       })
 
       it('handle big data', function () {
-        var replyCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply.length, 4 * 1024 * 1024)
           replyCount++
@@ -617,7 +600,6 @@ describe('parsers', function () {
 
       it('handle big data 2 with buffers', function (done) {
         this.timeout(7500)
-        var replyCount = 0
         var size = 120 * 1024 * 1024
         var replyLen = [size, size * 2, 11, 11]
         function checkReply (reply) {
