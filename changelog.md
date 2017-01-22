@@ -5,6 +5,7 @@ Features
 -  Added `reset` function to reset the parser to it's initial values
 -  Added `setReturnBuffers` function to reset the returnBuffers option (Only for the JSParser)
 -  Added `setStringNumbers` function to reset the stringNumbers option (Only for the JSParser)
+-  All Errors are now of sub classes of the new `RedisError` class. It is also exported.
 
 Bugfixes
 

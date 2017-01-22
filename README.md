@@ -35,6 +35,11 @@ var myParser = new Parser(options);
 * `setReturnBuffers(boolean)`: (JSParser only) set the returnBuffers option on/off without resetting the parser
 * `setStringNumbers(boolean)`: (JSParser only) set the stringNumbers option on/off without resetting the parser
 
+### Error classes
+
+All errors returned by the parser are of the class `ReplyError` that is a sub class of `RedisError`.  
+Both types are exported by the parser.
+
 ### Example
 
 ```js
