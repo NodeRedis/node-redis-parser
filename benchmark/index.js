@@ -62,14 +62,15 @@ for (i = 0; i < arraySize; i++) {
 
 var arrayBuffer = new Buffer(array)
 
-var bigArraySize = 1000
-var bigArrayChunks = [new Buffer('*1\r\n*1\r\n*' + bigArraySize * 2)]
+var bigArraySize = 160
+var bigArrayChunks = [new Buffer('*1\r\n*1\r\n*' + bigArraySize)]
 for (i = 0; i < bigArraySize; i++) {
-  size = (Math.random() * 10000 | 0)
+  // A chunk has a maximum size of 2^16 bytes.
+  size = 65000 + i
   if (i % 2) {
-    bigArrayChunks.push(new Buffer('\r\n$' + size + '\r\n' + Array(size + 1).join('a') + '\r\n:' + size))
+    bigArrayChunks.push(new Buffer('\r\n$' + size + '\r\n' + Array(size + 1).join('a') + '\r\n:' + (Math.random() * 1000000 | 0)))
   } else {
-    bigArrayChunks.push(new Buffer('\r\n+' + Array(size + 1).join('b') + '\r\n:' + size))
+    bigArrayChunks.push(new Buffer('\r\n+this is some short text about nothing\r\n:' + size + '\r\n$' + size + '\r\n' + Array(size + 1).join('b')))
   }
 }
 bigArrayChunks.push(new Buffer('\r\n'))
