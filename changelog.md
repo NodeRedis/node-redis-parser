@@ -1,4 +1,4 @@
-## v.2.4.0 - xx Jan, 2017
+## v.2.4.0 - 25 Jan, 2017
 
 Features
 
@@ -6,6 +6,7 @@ Features
 -  Added `setReturnBuffers` function to reset the returnBuffers option (Only for the JSParser)
 -  Added `setStringNumbers` function to reset the stringNumbers option (Only for the JSParser)
 -  All Errors are now of sub classes of the new `RedisError` class. It is also exported.
+-  Improved bulk string chunked data handling performance
 
 Bugfixes
 
