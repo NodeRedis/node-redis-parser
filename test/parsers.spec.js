@@ -613,9 +613,12 @@ describe('parsers', function () {
 
         parser.execute(new Buffer('+test\r\n'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('$4\r\ntest\r\n'))
+        parser.execute(new Buffer('$4\r\ntest\r'))
+        parser.execute(new Buffer('\n'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('*1\r\n$4\r\ntest\r\n'))
+        parser.execute(new Buffer('*1\r\n$4\r\nte'))
+        parser.execute(new Buffer('st\r'))
+        parser.execute(new Buffer('\n'))
         assert.strictEqual(replyCount, 3)
       })
 
