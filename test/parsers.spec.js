@@ -141,7 +141,7 @@ describe('parsers', function () {
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
         'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
       var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
-      var startBigBuffer = new Buffer(str + '$' + (size) + '\r\n')
+      var startBigBuffer = new Buffer(str + '$' + size + '\r\n')
       var parts = size / 65536
       var chunks = new Array(parts)
       parser.execute(startBigBuffer)
@@ -196,15 +196,13 @@ describe('parsers', function () {
         createBufferOfSize(parser, size * 11)
         createBufferOfSize(parser, size, '\r\n')
         parser.execute(new Buffer('\r\n'))
-        setTimeout(function () {
-          done()
-        }, 500)
+        setTimeout(done, 425)
       })
 
       it('multiple parsers do not interfere', function () {
         var results = [1234567890, 'foo bar baz', 'hello world']
         function checkReply (reply) {
-          assert.strictEqual(results[replyCount], reply)
+          assert.strictEqual(reply, results[replyCount])
           replyCount++
         }
         var parserOne = newParser(checkReply)
@@ -224,7 +222,7 @@ describe('parsers', function () {
       it('multiple parsers do not interfere with bulk strings in arrays', function () {
         var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
         function checkReply (reply) {
-          assert.deepEqual(results[replyCount], reply)
+          assert.deepEqual(reply, results[replyCount])
           replyCount++
         }
         var parserOne = newParser(checkReply)
@@ -273,7 +271,7 @@ describe('parsers', function () {
         var bigString = (new Array(Math.pow(2, 17) / lorem.length + 1).join(lorem)) // Math.pow(2, 17) chars long
         var sizes = [4, Math.pow(2, 17)]
         function checkReply (reply) {
-          assert.strictEqual(sizes[replyCount], reply.length)
+          assert.strictEqual(reply.length, sizes[replyCount])
           replyCount++
         }
         var parser = newParser(checkReply)
@@ -690,14 +688,14 @@ describe('parsers', function () {
           assert.strictEqual(replyCount, 3)
           parser.execute(new Buffer('\r\n'))
           assert.strictEqual(replyCount, 4)
-        }, 25)
+        }, 20)
         // Delay done so the bufferPool is cleared and tested
         // If the buffer is not cleared, the coverage is not going to be at 100
         setTimeout(function () {
           var totalBuffer = Buffer.concat(chunks).toString()
           assert.strictEqual(replies[3].toString(), totalBuffer)
           done()
-        }, (jsParser ? 1400 : 50))
+        }, (jsParser ? 1400 : 40))
       })
 
       it('handle big data', function () {
@@ -714,7 +712,7 @@ describe('parsers', function () {
 
       it('handle big data 2 with buffers', function (done) {
         this.timeout(7500)
-        var size = 120 * 1024 * 1024
+        var size = 111.5 * 1024 * 1024
         var replyLen = [size, size * 2, 11, 11]
         function checkReply (reply) {
           assert.strictEqual(reply.length, replyLen[replyCount])
@@ -732,7 +730,7 @@ describe('parsers', function () {
           parser.execute(new Buffer(' buffer\r\n'))
           assert.strictEqual(replyCount, 4)
           done()
-        }, 75)
+        }, 60)
       })
     })
   })
