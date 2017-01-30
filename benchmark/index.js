@@ -68,9 +68,10 @@ for (i = 0; i < bigArraySize; i++) {
   // A chunk has a maximum size of 2^16 bytes.
   size = 65000 + i
   if (i % 2) {
-    bigArrayChunks.push(new Buffer('\r\n$' + size + '\r\n' + Array(size + 1).join('a') + '\r\n:' + (Math.random() * 1000000 | 0)))
+    // The "x" in the beginning is important to prevent benchmark manipulation due to a minor jsparser optimization
+    bigArrayChunks.push(new Buffer('x\r\n$' + size + '\r\n' + Array(size + 1).join('a') + '\r\n:' + (Math.random() * 1000000 | 0)))
   } else {
-    bigArrayChunks.push(new Buffer('\r\n+this is some short text about nothing\r\n:' + size + '\r\n$' + size + '\r\n' + Array(size + 1).join('b')))
+    bigArrayChunks.push(new Buffer('\r\n+this is some short text about nothing\r\n:' + size + '\r\n$' + size + '\r\n' + Array(size).join('b')))
   }
 }
 bigArrayChunks.push(new Buffer('\r\n'))

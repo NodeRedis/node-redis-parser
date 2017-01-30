@@ -1,3 +1,9 @@
+## v.2.4.1 - 05 Feb, 2017
+
+Bugfixes
+
+-  Fixed minimal memory consumtion overhead for chunked buffers
+
 ## v.2.4.0 - 25 Jan, 2017
 
 Features
