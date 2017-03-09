@@ -36,8 +36,12 @@ var myParser = new Parser(options);
 
 ### Error classes
 
-All errors returned by the parser are of the class `ReplyError` that is a sub class of `RedisError`.  
-Both types are exported by the parser.
+* `RedisError` sub class of Error
+* `ReplyError` sub class of RedisError
+* `ParserError` sub class of RedisError
+
+All Redis errors will be returned as `ReplyErrors` while a parser error is returned as `ParserError`.  
+All error classes are exported by the parser.
 
 ### Example
 

@@ -3,9 +3,11 @@
 /* eslint-env mocha */
 
 var assert = require('assert')
+var util = require('util')
 var JavascriptParser = require('../')
 var HiredisParser = require('../lib/hiredis')
 var ReplyError = JavascriptParser.ReplyError
+var ParserError = JavascriptParser.ParserError
 var RedisError = JavascriptParser.RedisError
 var parsers = [HiredisParser, JavascriptParser]
 
@@ -318,10 +320,14 @@ describe('parsers', function () {
         Abc.prototype.checkReply = function (err) {
           assert.strictEqual(typeof this.log, 'function')
           assert.strictEqual(err.message, 'Protocol error, got "a" as reply type byte')
-          assert.strictEqual(err.name, 'ReplyError')
+          assert.strictEqual(err.name, 'ParserError')
           assert(err instanceof RedisError)
-          assert(err instanceof ReplyError)
+          assert(err instanceof ParserError)
           assert(err instanceof Error)
+          assert(err.offset)
+          assert(err.buffer)
+          assert(/\[97,42,49,13,42,49,13,36,49,96,122,97,115,100,13,10,97]/.test(err.buffer))
+          assert(/ParserError: Protocol error, got "a" as reply type byte/.test(util.inspect(err)))
           replyCount++
         }
         Abc.prototype.log = console.log
