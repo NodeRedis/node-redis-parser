@@ -11,3 +11,5 @@ test
 .travis.yml
 .gitignore
 *.log
+.vscode
+.codeclimate.yml
