@@ -1,3 +1,14 @@
+## v.2.5.0 - 11 Mar, 2017
+
+Features
+
+-  Added a `ParserError` class to differentiate them to ReplyErrors. The class is also exported
+
+Bugfixes
+
+-  All errors now show their error message again next to the error name in the stack trace
+-  ParserErrors now show the offset and buffer attributes while being logged
+
 ## v.2.4.1 - 05 Feb, 2017
 
 Bugfixes
