@@ -34,7 +34,7 @@
     "codeclimate-test-reporter": "^0.4.0",
     "intercept-stdout": "^0.1.2",
     "istanbul": "^0.4.0",
-    "standard": "^8.5.0",
+    "standard": "^9.0.0",
     "mocha": "^3.1.2",
     "hiredis": "^0.5.0"
   },
