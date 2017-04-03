@@ -1,6 +1,6 @@
 {
   "name": "redis-parser",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Javascript Redis protocol (RESP) parser",
   "main": "index.js",
   "scripts": {
