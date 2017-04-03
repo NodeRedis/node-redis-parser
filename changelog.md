@@ -1,3 +1,9 @@
+## v.2.6.0 - 03 Apr, 2017
+
+Internals
+
+-  Use Buffer.allocUnsafe instead of new Buffer() with modern Node.js versions
+
 ## v.2.5.0 - 11 Mar, 2017
 
 Features
@@ -13,7 +19,7 @@ Bugfixes
 
 Bugfixes
 
--  Fixed minimal memory consumtion overhead for chunked buffers
+-  Fixed minimal memory consumption overhead for chunked buffers
 
 ## v.2.4.0 - 25 Jan, 2017
 
@@ -94,7 +100,7 @@ Bugfixes
 
 ## v.2.0.0 - 29 May, 2016
 
-The javascript parser got completly rewritten by [Michael Diarmid](https://github.com/Salakar) and [Ruben Bridgewater](https://github.com/BridgeAR) and is now a lot faster than the hiredis parser.
+The javascript parser got completely rewritten by [Michael Diarmid](https://github.com/Salakar) and [Ruben Bridgewater](https://github.com/BridgeAR) and is now a lot faster than the hiredis parser.
 Therefore the hiredis parser was deprecated and should only be used for testing purposes and benchmarking comparison.
 
 All Errors returned by the parser are from now on of class ReplyError
