@@ -1,3 +1,14 @@
+## v.3.0.0 - xx Apr, 2017
+
+Breaking Changes
+
+- Drop support for Node.js < 6
+- Removed support for hiredis completely
+
+Internals
+
+- Due to the changes to ES6 the error performance improved by factor 2-3x
+
 ## v.2.6.0 - 03 Apr, 2017
 
 Internals

@@ -1,15 +1,16 @@
 'use strict'
 
 /* eslint-env mocha */
+/* eslint-disable no-new */
 
-var assert = require('assert')
-var util = require('util')
-var JavascriptParser = require('../')
-var HiredisParser = require('../lib/hiredis')
-var ReplyError = JavascriptParser.ReplyError
-var ParserError = JavascriptParser.ParserError
-var RedisError = JavascriptParser.RedisError
-var parsers = [HiredisParser, JavascriptParser]
+const assert = require('assert')
+const util = require('util')
+const JavascriptParser = require('../')
+const HiredisParser = require('./hiredis')
+const ReplyError = JavascriptParser.ReplyError
+const ParserError = JavascriptParser.ParserError
+const RedisError = JavascriptParser.RedisError
+const parsers = [HiredisParser, JavascriptParser]
 
 // Mock the not needed return functions
 function returnReply () { throw new Error('failed') }
@@ -18,20 +19,10 @@ function returnFatalError (err) { throw err }
 
 describe('parsers', function () {
   describe('general parser functionality', function () {
-    it('backwards compatibility with hiredis', function () {
-      var parser = new JavascriptParser({
-        returnReply: returnReply,
-        returnError: returnError,
-        name: 'hiredis'
-      })
-      assert.strictEqual(parser.name, 'hiredis')
-    })
-
     it('fail for missing options argument', function () {
       assert.throws(function () {
-        JavascriptParser()
+        new JavascriptParser()
       }, function (err) {
-        assert.strictEqual(err.message, 'Please provide all return functions while initiating the parser')
         assert(err instanceof TypeError)
         return true
       })
@@ -39,19 +30,19 @@ describe('parsers', function () {
 
     it('fail for faulty options properties', function () {
       assert.throws(function () {
-        JavascriptParser({
+        new JavascriptParser({
           returnReply: returnReply,
           returnError: true
         })
       }, function (err) {
-        assert.strictEqual(err.message, 'The options argument contains the property "returnError" that is either unknown or of a wrong type')
+        assert.strictEqual(err.message, 'The returnReply and returnError options have to be functions.')
         assert(err instanceof TypeError)
         return true
       })
     })
 
     it('should not fail for unknown options properties', function () {
-      JavascriptParser({
+      new JavascriptParser({
         returnReply: returnReply,
         returnError: returnError,
         bla: 6
@@ -59,8 +50,8 @@ describe('parsers', function () {
     })
 
     it('reset returnBuffers option', function () {
-      var res = 'test'
-      var replyCount = 0
+      const res = 'test'
+      let replyCount = 0
       function checkReply (reply) {
         if (replyCount === 0) {
           assert.strictEqual(reply, res)
@@ -69,7 +60,7 @@ describe('parsers', function () {
         }
         replyCount++
       }
-      var parser = JavascriptParser({
+      const parser = new JavascriptParser({
         returnReply: checkReply,
         returnError: returnError
       })
@@ -82,7 +73,7 @@ describe('parsers', function () {
     })
 
     it('reset returnBuffers option with wrong input', function () {
-      var parser = JavascriptParser({
+      const parser = new JavascriptParser({
         returnReply: returnReply,
         returnError: returnError
       })
@@ -96,8 +87,8 @@ describe('parsers', function () {
     })
 
     it('reset stringNumbers option', function () {
-      var res = 123
-      var replyCount = 0
+      const res = 123
+      let replyCount = 0
       function checkReply (reply) {
         if (replyCount === 0) {
           assert.strictEqual(reply, res)
@@ -106,7 +97,7 @@ describe('parsers', function () {
         }
         replyCount++
       }
-      var parser = JavascriptParser({
+      const parser = new JavascriptParser({
         returnReply: checkReply,
         returnError: returnError
       })
@@ -118,7 +109,7 @@ describe('parsers', function () {
     })
 
     it('reset stringNumbers option with wrong input', function () {
-      var parser = JavascriptParser({
+      const parser = new JavascriptParser({
         returnReply: returnReply,
         returnError: returnError
       })
@@ -138,16 +129,16 @@ describe('parsers', function () {
         throw new Error('Size may only be multiple of 65536')
       }
       str = str || ''
-      var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+      const lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
         'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
         'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
-      var bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
-      var startBigBuffer = new Buffer(str + '$' + size + '\r\n')
-      var parts = size / 65536
-      var chunks = new Array(parts)
+      const bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
+      const startBigBuffer = new Buffer(str + '$' + size + '\r\n')
+      const parts = size / 65536
+      const chunks = new Array(parts)
       parser.execute(startBigBuffer)
-      for (var i = 0; i < parts; i++) {
+      for (let i = 0; i < parts; i++) {
         chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
         if (Parser.name === 'JavascriptRedisParser') {
           assert.strictEqual(parser.bufferCache.length, i + 1)
@@ -171,7 +162,7 @@ describe('parsers', function () {
     }
 
     describe(Parser.name, function () {
-      var replyCount = 0
+      let replyCount = 0
       beforeEach(function () {
         replyCount = 0
       })
@@ -181,7 +172,7 @@ describe('parsers', function () {
           assert.strictEqual(reply, 'test')
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
         parser.execute(new Buffer('$123\r\naaa'))
         parser.reset()
         parser.execute(new Buffer('+test\r\n'))
@@ -192,9 +183,9 @@ describe('parsers', function () {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
         }
-        var size = 64 * 1024
+        const size = 64 * 1024
         function checkReply (reply) {}
-        var parser = newParser(checkReply, 'buffer')
+        const parser = newParser(checkReply, 'buffer')
         createBufferOfSize(parser, size * 11)
         createBufferOfSize(parser, size, '\r\n')
         parser.execute(new Buffer('\r\n'))
@@ -202,13 +193,13 @@ describe('parsers', function () {
       })
 
       it('multiple parsers do not interfere', function () {
-        var results = [1234567890, 'foo bar baz', 'hello world']
+        const results = [1234567890, 'foo bar baz', 'hello world']
         function checkReply (reply) {
           assert.strictEqual(reply, results[replyCount])
           replyCount++
         }
-        var parserOne = newParser(checkReply)
-        var parserTwo = newParser(checkReply)
+        const parserOne = newParser(checkReply)
+        const parserTwo = newParser(checkReply)
         parserOne.execute(new Buffer('+foo '))
         parserOne.execute(new Buffer('bar '))
         assert.strictEqual(replyCount, 0)
@@ -222,13 +213,13 @@ describe('parsers', function () {
       })
 
       it('multiple parsers do not interfere with bulk strings in arrays', function () {
-        var results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
+        const results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
         function checkReply (reply) {
           assert.deepEqual(reply, results[replyCount])
           replyCount++
         }
-        var parserOne = newParser(checkReply)
-        var parserTwo = newParser(checkReply)
+        const parserOne = newParser(checkReply)
+        const parserTwo = newParser(checkReply)
         parserOne.execute(new Buffer('*2\r\n+foo\r\n$11\r\nfoo '))
         parserOne.execute(new Buffer('bar '))
         assert.strictEqual(replyCount, 0)
@@ -245,38 +236,38 @@ describe('parsers', function () {
       })
 
       it('returned buffers do not get mutated', function () {
-        var results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
+        const results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
         function checkReply (reply) {
           assert.deepEqual(results[replyCount], reply)
           results[replyCount] = reply
           replyCount++
         }
-        var parser = newParser(checkReply, 'buffer')
+        const parser = newParser(checkReply, 'buffer')
         parser.execute(new Buffer('$10\r\naaaaa'))
         parser.execute(new Buffer('aaaaa\r\n'))
         assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer('$10\r\nzzzzz'))
         parser.execute(new Buffer('zzzzz\r\n'))
         assert.strictEqual(replyCount, 2)
-        var str = results[0].toString()
-        for (var i = 0; i < str.length; i++) {
+        const str = results[0].toString()
+        for (let i = 0; i < str.length; i++) {
           assert.strictEqual(str.charAt(i), 'a')
         }
       })
 
       it('chunks getting to big for the bufferPool', function () {
         // This is a edge case. Chunks should not exceed Math.pow(2, 16) bytes
-        var lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
+        const lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, ' +
           'sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ' +
           'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
           'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
-        var bigString = (new Array(Math.pow(2, 17) / lorem.length + 1).join(lorem)) // Math.pow(2, 17) chars long
-        var sizes = [4, Math.pow(2, 17)]
+        const bigString = (new Array(Math.pow(2, 17) / lorem.length + 1).join(lorem)) // Math.pow(2, 17) chars long
+        const sizes = [4, Math.pow(2, 17)]
         function checkReply (reply) {
           assert.strictEqual(reply.length, sizes[replyCount])
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
         parser.execute(new Buffer('+test'))
         assert.strictEqual(replyCount, 0)
         parser.execute(new Buffer('\r\n+'))
@@ -295,8 +286,8 @@ describe('parsers', function () {
           replyCount++
         }
         Abc.prototype.log = console.log
-        var test = new Abc()
-        var parser = newParser({
+        const test = new Abc()
+        const parser = newParser({
           returnReply: function (reply) {
             test.checkReply(reply)
           }
@@ -331,8 +322,8 @@ describe('parsers', function () {
           replyCount++
         }
         Abc.prototype.log = console.log
-        var test = new Abc()
-        var parser = newParser({
+        const test = new Abc()
+        const parser = newParser({
           returnFatalError: function (err) {
             test.checkReply(err)
           }
@@ -343,7 +334,7 @@ describe('parsers', function () {
       })
 
       it('parser error resets the buffer', function () {
-        var errCount = 0
+        let errCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply.length, 1)
           assert(Buffer.isBuffer(reply[0]))
@@ -354,7 +345,7 @@ describe('parsers', function () {
           assert.strictEqual(err.message, 'Protocol error, got "b" as reply type byte')
           errCount++
         }
-        var parser = new Parser({
+        const parser = new Parser({
           returnReply: checkReply,
           returnError: checkError,
           returnFatalError: checkError,
@@ -372,7 +363,7 @@ describe('parsers', function () {
       })
 
       it('parser error v3 without returnFatalError specified', function () {
-        var errCount = 0
+        let errCount = 0
         function checkReply (reply) {
           assert.strictEqual(reply[0], 'OK')
           replyCount++
@@ -381,7 +372,7 @@ describe('parsers', function () {
           assert.strictEqual(err.message, 'Protocol error, got "\\n" as reply type byte')
           errCount++
         }
-        var parser = new Parser({
+        const parser = new Parser({
           returnReply: checkReply,
           returnError: checkError
         })
@@ -393,12 +384,12 @@ describe('parsers', function () {
 
       it('should handle \\r and \\n characters properly', function () {
         // If a string contains \r or \n characters it will always be send as a bulk string
-        var entries = ['foo\r', 'foo\r\nbar', '\r\nСанкт-Пет', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
+        const entries = ['foo\r', 'foo\r\nbar', '\r\nСанкт-Пет', 'foo\r\n', 'foo', 'foobar', 'foo\r', 'äfooöü', 'abc']
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$19\r\n\r\n'))
         parser.execute(new Buffer([208, 161, 208, 176, 208, 189, 208]))
@@ -425,7 +416,7 @@ describe('parsers', function () {
           assert.deepEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na'))
         assert.strictEqual(replyCount, 0)
@@ -442,7 +433,7 @@ describe('parsers', function () {
           assert.strictEqual(reply, 'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij')
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer('$100\r\nabcdefghij'))
         parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
@@ -471,7 +462,7 @@ describe('parsers', function () {
       })
 
       it('multiple chunks with arrays different types', function () {
-        var predefinedData = [
+        const predefinedData = [
           'abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij',
           'test',
           100,
@@ -480,7 +471,7 @@ describe('parsers', function () {
           new ReplyError()
         ]
         function checkReply (reply) {
-          for (var i = 0; i < reply.length; i++) {
+          for (let i = 0; i < reply.length; i++) {
             if (Array.isArray(reply[i])) {
               reply[i].forEach(function (reply, j) {
                 assert.strictEqual(reply, predefinedData[i][j])
@@ -497,7 +488,7 @@ describe('parsers', function () {
           }
           replyCount++
         }
-        var parser = newParser({
+        const parser = newParser({
           returnReply: checkReply,
           returnBuffers: false
         })
@@ -516,7 +507,7 @@ describe('parsers', function () {
       })
 
       it('multiple chunks with nested partial arrays', function () {
-        var predefinedData = [
+        const predefinedData = [
           'abcdefghijabcdefghij',
           100,
           '1234567890',
@@ -524,12 +515,12 @@ describe('parsers', function () {
         ]
         function checkReply (reply) {
           assert.strictEqual(reply.length, 1)
-          for (var i = 0; i < reply[0].length; i++) {
+          for (let i = 0; i < reply[0].length; i++) {
             assert.strictEqual(reply[0][i], predefinedData[i])
           }
           replyCount++
         }
-        var parser = newParser({
+        const parser = newParser({
           returnReply: checkReply
         })
         parser.execute(new Buffer('*1\r\n*4\r\n+abcdefghijabcdefghij\r\n:100'))
@@ -544,7 +535,7 @@ describe('parsers', function () {
           assert.strictEqual(reply.message, 'Error message')
           replyCount++
         }
-        var parser = newParser({
+        const parser = newParser({
           returnError: checkReply
         })
 
@@ -560,7 +551,7 @@ describe('parsers', function () {
           assert.strictEqual(reply, null)
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer('$-1\r\n*-'))
         assert.strictEqual(replyCount, 1)
@@ -575,7 +566,7 @@ describe('parsers', function () {
           assert.strictEqual(reply, 1)
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer(':'))
         assert.strictEqual(replyCount, 0)
@@ -591,7 +582,7 @@ describe('parsers', function () {
           assert.strictEqual(reply, 1)
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
 
         parser.execute(new Buffer(':1\r\n:'))
         assert.strictEqual(replyCount, 1)
@@ -612,7 +603,7 @@ describe('parsers', function () {
           assert.strictEqual(reply.inspect(), new Buffer('test').inspect())
           replyCount++
         }
-        var parser = newParser(checkReply, 'buffer')
+        const parser = newParser(checkReply, 'buffer')
 
         parser.execute(new Buffer('+test\r\n'))
         assert.strictEqual(replyCount, 1)
@@ -626,12 +617,12 @@ describe('parsers', function () {
       })
 
       it('handle special case buffer sizes properly', function () {
-        var entries = ['test test ', 'test test test test ', 1234]
+        const entries = ['test test ', 'test test test test ', 1234]
         function checkReply (reply) {
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
         parser.execute(new Buffer('$10\r\ntest '))
         assert.strictEqual(replyCount, 0)
         parser.execute(new Buffer('test \r\n$20\r\ntest test test test \r\n:1234\r'))
@@ -644,13 +635,13 @@ describe('parsers', function () {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
         }
-        var entries = ['123', '590295810358705700002', '-99999999999999999', '4294967290', '90071992547409920', '10000040000000000000000000000000000000020']
+        const entries = ['123', '590295810358705700002', '-99999999999999999', '4294967290', '90071992547409920', '10000040000000000000000000000000000000020']
         function checkReply (reply) {
           assert.strictEqual(typeof reply, 'string')
           assert.strictEqual(reply, entries[replyCount])
           replyCount++
         }
-        var parser = newParser({
+        const parser = newParser({
           returnReply: checkReply,
           stringNumbers: true
         })
@@ -659,12 +650,12 @@ describe('parsers', function () {
       })
 
       it('handle big numbers', function () {
-        var number = 9007199254740991 // Number.MAX_SAFE_INTEGER
+        let number = 9007199254740991 // Number.MAX_SAFE_INTEGER
         function checkReply (reply) {
           assert.strictEqual(reply, number++)
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
         parser.execute(new Buffer(':' + number + '\r\n'))
         assert.strictEqual(replyCount, 1)
         parser.execute(new Buffer(':' + number + '\r\n'))
@@ -672,14 +663,14 @@ describe('parsers', function () {
       })
 
       it('handle big data with buffers', function (done) {
-        var chunks
-        var replies = []
-        var jsParser = Parser.name === 'JavascriptRedisParser'
+        let chunks
+        const replies = []
+        const jsParser = Parser.name === 'JavascriptRedisParser'
         function checkReply (reply) {
           replies.push(reply)
           replyCount++
         }
-        var parser = newParser(checkReply, 'buffer')
+        const parser = newParser(checkReply, 'buffer')
         parser.execute(new Buffer('+test'))
         assert.strictEqual(replyCount, 0)
         createBufferOfSize(parser, 128 * 1024, '\r\n')
@@ -697,7 +688,7 @@ describe('parsers', function () {
         // Delay done so the bufferPool is cleared and tested
         // If the buffer is not cleared, the coverage is not going to be at 100
         setTimeout(function () {
-          var totalBuffer = Buffer.concat(chunks).toString()
+          const totalBuffer = Buffer.concat(chunks).toString()
           assert.strictEqual(replies[3].toString(), totalBuffer)
           done()
         }, (jsParser ? 1400 : 40))
@@ -708,7 +699,7 @@ describe('parsers', function () {
           assert.strictEqual(reply.length, 4 * 1024 * 1024)
           replyCount++
         }
-        var parser = newParser(checkReply)
+        const parser = newParser(checkReply)
         createBufferOfSize(parser, 4 * 1024 * 1024)
         assert.strictEqual(replyCount, 0)
         parser.execute(new Buffer('\r\n'))
@@ -717,13 +708,13 @@ describe('parsers', function () {
 
       it('handle big data 2 with buffers', function (done) {
         this.timeout(7500)
-        var size = 111.5 * 1024 * 1024
-        var replyLen = [size, size * 2, 11, 11]
+        const size = 111.5 * 1024 * 1024
+        const replyLen = [size, size * 2, 11, 11]
         function checkReply (reply) {
           assert.strictEqual(reply.length, replyLen[replyCount])
           replyCount++
         }
-        var parser = newParser(checkReply, 'buffer')
+        const parser = newParser(checkReply, 'buffer')
         createBufferOfSize(parser, size)
         assert.strictEqual(replyCount, 0)
         createBufferOfSize(parser, size * 2, '\r\n')
