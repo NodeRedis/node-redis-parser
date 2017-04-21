@@ -9,6 +9,10 @@ Internals
 
 - Due to the changes to ES6 the error performance improved by factor 2-3x
 
+Features
+
+- The parser now handles weird input graceful
+
 ## v.2.6.0 - 03 Apr, 2017
 
 Internals
