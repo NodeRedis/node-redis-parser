@@ -179,6 +179,26 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 1)
       })
 
+      it('weird things', function () {
+        var replyCount = 0
+        var results = [[], '', [0, null, '', 0, '', []], 9223372036854776, '☃', [1, 'OK', null], null, 12345, [], null, 't']
+        function checkReply (reply) {
+          assert.deepEqual(results[replyCount], reply)
+          replyCount++
+        }
+        var parser = newParser(checkReply)
+        parser.execute(Buffer.from('*0\r\n$0\r\n\r\n*6\r\n:\r\n$-1\r\n$0\r\n\r\n:-\r\n$'))
+        assert.strictEqual(replyCount, 2)
+        parser.execute(Buffer.from('\r\n\r\n*\r\n:9223372036854775\r\n$' + Buffer.byteLength('☃') + '\r\n☃\r\n'))
+        assert.strictEqual(replyCount, 5)
+        parser.execute(Buffer.from('*3\r\n:1\r\n+OK\r\n$-1\r\n'))
+        assert.strictEqual(replyCount, 6)
+        parser.execute(Buffer.from('$-5'))
+        assert.strictEqual(replyCount, 6)
+        parser.execute(Buffer.from('\r\n:12345\r\n*-\r\n*-1\r\n+t\r\n'))
+        assert.strictEqual(replyCount, 11)
+      })
+
       it('should not set the bufferOffset to a negative value', function (done) {
         if (Parser.name === 'HiredisReplyParser') {
           return this.skip()
