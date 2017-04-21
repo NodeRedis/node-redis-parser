@@ -11,7 +11,7 @@ describe('errors', function () {
   it('errors should have a stack trace with error message', function () {
     const err1 = new RedisError('test')
     const err2 = new ReplyError('test')
-    const err3 = new ParserError('test', new Buffer(''), 0)
+    const err3 = new ParserError('test', Buffer.from(''), 0)
     assert(err1.stack)
     assert(err2.stack)
     assert(err3.stack)
