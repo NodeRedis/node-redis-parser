@@ -56,7 +56,7 @@ describe('parsers', function () {
         if (replyCount === 0) {
           assert.strictEqual(reply, res)
         } else {
-          assert.strictEqual(reply.inspect(), Buffer(res).inspect())
+          assert.strictEqual(reply.inspect(), Buffer.from(res).inspect())
         }
         replyCount++
       }
@@ -64,11 +64,11 @@ describe('parsers', function () {
         returnReply: checkReply,
         returnError: returnError
       })
-      parser.execute(new Buffer('+test\r\n'))
-      parser.execute(new Buffer('+test'))
+      parser.execute(Buffer.from('+test\r\n'))
+      parser.execute(Buffer.from('+test'))
       parser.setReturnBuffers(true)
       assert.strictEqual(replyCount, 1)
-      parser.execute(new Buffer('\r\n'))
+      parser.execute(Buffer.from('\r\n'))
       assert.strictEqual(replyCount, 2)
     })
 
@@ -101,10 +101,10 @@ describe('parsers', function () {
         returnReply: checkReply,
         returnError: returnError
       })
-      parser.execute(new Buffer(':123\r\n'))
+      parser.execute(Buffer.from(':123\r\n'))
       assert.strictEqual(replyCount, 1)
       parser.setStringNumbers(true)
-      parser.execute(new Buffer(':123\r\n'))
+      parser.execute(Buffer.from(':123\r\n'))
       assert.strictEqual(replyCount, 2)
     })
 
@@ -134,12 +134,12 @@ describe('parsers', function () {
         'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ' +
         'ut aliquip ex ea commodo consequat. Duis aute irure dolor in' // 256 chars
       const bigStringArray = (new Array(Math.pow(2, 16) / lorem.length).join(lorem + ' ')).split(' ') // Math.pow(2, 16) chars long
-      const startBigBuffer = new Buffer(str + '$' + size + '\r\n')
+      const startBigBuffer = Buffer.from(str + '$' + size + '\r\n')
       const parts = size / 65536
       const chunks = new Array(parts)
       parser.execute(startBigBuffer)
       for (let i = 0; i < parts; i++) {
-        chunks[i] = new Buffer(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
+        chunks[i] = Buffer.from(bigStringArray.join(' ') + '.') // Math.pow(2, 16) chars long
         if (Parser.name === 'JavascriptRedisParser') {
           assert.strictEqual(parser.bufferCache.length, i + 1)
         }
@@ -173,9 +173,9 @@ describe('parsers', function () {
           replyCount++
         }
         const parser = newParser(checkReply)
-        parser.execute(new Buffer('$123\r\naaa'))
+        parser.execute(Buffer.from('$123\r\naaa'))
         parser.reset()
-        parser.execute(new Buffer('+test\r\n'))
+        parser.execute(Buffer.from('+test\r\n'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -188,7 +188,7 @@ describe('parsers', function () {
         const parser = newParser(checkReply, 'buffer')
         createBufferOfSize(parser, size * 11)
         createBufferOfSize(parser, size, '\r\n')
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         setTimeout(done, 425)
       })
 
@@ -200,15 +200,15 @@ describe('parsers', function () {
         }
         const parserOne = newParser(checkReply)
         const parserTwo = newParser(checkReply)
-        parserOne.execute(new Buffer('+foo '))
-        parserOne.execute(new Buffer('bar '))
+        parserOne.execute(Buffer.from('+foo '))
+        parserOne.execute(Buffer.from('bar '))
         assert.strictEqual(replyCount, 0)
-        parserTwo.execute(new Buffer(':1234567890\r\n+hello '))
+        parserTwo.execute(Buffer.from(':1234567890\r\n+hello '))
         assert.strictEqual(replyCount, 1)
-        parserTwo.execute(new Buffer('wor'))
-        parserOne.execute(new Buffer('baz\r\n'))
+        parserTwo.execute(Buffer.from('wor'))
+        parserOne.execute(Buffer.from('baz\r\n'))
         assert.strictEqual(replyCount, 2)
-        parserTwo.execute(new Buffer('ld\r\n'))
+        parserTwo.execute(Buffer.from('ld\r\n'))
         assert.strictEqual(replyCount, 3)
       })
 
@@ -220,34 +220,34 @@ describe('parsers', function () {
         }
         const parserOne = newParser(checkReply)
         const parserTwo = newParser(checkReply)
-        parserOne.execute(new Buffer('*2\r\n+foo\r\n$11\r\nfoo '))
-        parserOne.execute(new Buffer('bar '))
+        parserOne.execute(Buffer.from('*2\r\n+foo\r\n$11\r\nfoo '))
+        parserOne.execute(Buffer.from('bar '))
         assert.strictEqual(replyCount, 0)
-        parserTwo.execute(new Buffer('*3\r\n:1234567890\r\n$11\r\nhello '))
+        parserTwo.execute(Buffer.from('*3\r\n:1234567890\r\n$11\r\nhello '))
         assert.strictEqual(replyCount, 0)
-        parserOne.execute(new Buffer('baz\r\n+ttttttttttttttttttttttttt'))
+        parserOne.execute(Buffer.from('baz\r\n+ttttttttttttttttttttttttt'))
         assert.strictEqual(replyCount, 1)
-        parserTwo.execute(new Buffer('wor'))
-        parserTwo.execute(new Buffer('ld\r\n'))
+        parserTwo.execute(Buffer.from('wor'))
+        parserTwo.execute(Buffer.from('ld\r\n'))
         assert.strictEqual(replyCount, 1)
-        parserTwo.execute(new Buffer('+the end\r\n'))
+        parserTwo.execute(Buffer.from('+the end\r\n'))
         assert.strictEqual(replyCount, 2)
-        parserOne.execute(new Buffer('tttttttttttttttttttttt\r\n'))
+        parserOne.execute(Buffer.from('tttttttttttttttttttttt\r\n'))
       })
 
       it('returned buffers do not get mutated', function () {
-        const results = [new Buffer('aaaaaaaaaa'), new Buffer('zzzzzzzzzz')]
+        const results = [Buffer.from('aaaaaaaaaa'), Buffer.from('zzzzzzzzzz')]
         function checkReply (reply) {
           assert.deepEqual(results[replyCount], reply)
           results[replyCount] = reply
           replyCount++
         }
         const parser = newParser(checkReply, 'buffer')
-        parser.execute(new Buffer('$10\r\naaaaa'))
-        parser.execute(new Buffer('aaaaa\r\n'))
+        parser.execute(Buffer.from('$10\r\naaaaa'))
+        parser.execute(Buffer.from('aaaaa\r\n'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('$10\r\nzzzzz'))
-        parser.execute(new Buffer('zzzzz\r\n'))
+        parser.execute(Buffer.from('$10\r\nzzzzz'))
+        parser.execute(Buffer.from('zzzzz\r\n'))
         assert.strictEqual(replyCount, 2)
         const str = results[0].toString()
         for (let i = 0; i < str.length; i++) {
@@ -268,13 +268,13 @@ describe('parsers', function () {
           replyCount++
         }
         const parser = newParser(checkReply)
-        parser.execute(new Buffer('+test'))
+        parser.execute(Buffer.from('+test'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\r\n+'))
+        parser.execute(Buffer.from('\r\n+'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer(bigString))
+        parser.execute(Buffer.from(bigString))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         assert.strictEqual(replyCount, 2)
       })
 
@@ -293,15 +293,15 @@ describe('parsers', function () {
           }
         })
 
-        parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na\r\n'))
+        parser.execute(Buffer.from('*1\r\n*1\r\n$1\r\na\r\n'))
         assert.strictEqual(replyCount, 1)
 
-        parser.execute(new Buffer('*1\r\n*1\r'))
-        parser.execute(new Buffer('\n$1\r\na\r\n'))
+        parser.execute(Buffer.from('*1\r\n*1\r'))
+        parser.execute(Buffer.from('\n$1\r\na\r\n'))
         assert.strictEqual(replyCount, 2)
 
-        parser.execute(new Buffer('*1\r\n*1\r\n'))
-        parser.execute(new Buffer('$1\r\na\r\n'))
+        parser.execute(Buffer.from('*1\r\n*1\r\n'))
+        parser.execute(Buffer.from('$1\r\na\r\n'))
 
         assert.strictEqual(replyCount, 3, 'check reply should have been called three times')
       })
@@ -329,7 +329,7 @@ describe('parsers', function () {
           }
         })
 
-        parser.execute(new Buffer('a*1\r*1\r$1`zasd\r\na'))
+        parser.execute(Buffer.from('a*1\r*1\r$1`zasd\r\na'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -353,12 +353,12 @@ describe('parsers', function () {
         })
 
         // The chunk contains valid data after the protocol error
-        parser.execute(new Buffer('*1\r\n+CCC\r\nb$1\r\nz\r\n+abc\r\n'))
+        parser.execute(Buffer.from('*1\r\n+CCC\r\nb$1\r\nz\r\n+abc\r\n'))
         assert.strictEqual(replyCount, 1)
         assert.strictEqual(errCount, 1)
-        parser.execute(new Buffer('*1\r\n+CCC\r\n'))
+        parser.execute(Buffer.from('*1\r\n+CCC\r\n'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('-Protocol error, got "b" as reply type byte\r\n'))
+        parser.execute(Buffer.from('-Protocol error, got "b" as reply type byte\r\n'))
         assert.strictEqual(errCount, 2)
       })
 
@@ -377,7 +377,7 @@ describe('parsers', function () {
           returnError: checkError
         })
 
-        parser.execute(new Buffer('*1\r\n+OK\r\n\n+zasd\r\n'))
+        parser.execute(Buffer.from('*1\r\n+OK\r\n\n+zasd\r\n'))
         assert.strictEqual(replyCount, 1)
         assert.strictEqual(errCount, 1)
       })
@@ -391,23 +391,23 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$19\r\n\r\n'))
-        parser.execute(new Buffer([208, 161, 208, 176, 208, 189, 208]))
-        parser.execute(new Buffer([186, 209, 130, 45, 208, 159, 208, 181, 209, 130]))
+        parser.execute(Buffer.from('$4\r\nfoo\r\r\n$8\r\nfoo\r\nbar\r\n$19\r\n\r\n'))
+        parser.execute(Buffer.from([208, 161, 208, 176, 208, 189, 208]))
+        parser.execute(Buffer.from([186, 209, 130, 45, 208, 159, 208, 181, 209, 130]))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('\r\n$5\r\nfoo\r\n\r\n'))
+        parser.execute(Buffer.from('\r\n$5\r\nfoo\r\n\r\n'))
         assert.strictEqual(replyCount, 4)
-        parser.execute(new Buffer('+foo\r'))
+        parser.execute(Buffer.from('+foo\r'))
         assert.strictEqual(replyCount, 4)
-        parser.execute(new Buffer('\n$6\r\nfoobar\r'))
+        parser.execute(Buffer.from('\n$6\r\nfoobar\r'))
         assert.strictEqual(replyCount, 5)
-        parser.execute(new Buffer('\n$4\r\nfoo\r\r\n'))
+        parser.execute(Buffer.from('\n$4\r\nfoo\r\r\n'))
         assert.strictEqual(replyCount, 7)
-        parser.execute(new Buffer('$9\r\näfo'))
-        parser.execute(new Buffer('oö'))
-        parser.execute(new Buffer('ü\r'))
+        parser.execute(Buffer.from('$9\r\näfo'))
+        parser.execute(Buffer.from('oö'))
+        parser.execute(Buffer.from('ü\r'))
         assert.strictEqual(replyCount, 7)
-        parser.execute(new Buffer('\n+abc\r\n'))
+        parser.execute(Buffer.from('\n+abc\r\n'))
         assert.strictEqual(replyCount, 9)
       })
 
@@ -418,12 +418,12 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer('*1\r\n*1\r\n$1\r\na'))
+        parser.execute(Buffer.from('*1\r\n*1\r\n$1\r\na'))
         assert.strictEqual(replyCount, 0)
 
-        parser.execute(new Buffer('\r\n*1\r\n*1\r'))
+        parser.execute(Buffer.from('\r\n*1\r\n*1\r'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\n$1\r\na\r\n*1\r\n*1\r\n$1\r\na\r\n'))
+        parser.execute(Buffer.from('\n$1\r\na\r\n*1\r\n*1\r\n$1\r\na\r\n'))
 
         assert.strictEqual(replyCount, 3, 'check reply should have been called three times')
       })
@@ -435,28 +435,28 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer('$100\r\nabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('$100\r\nabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         assert.strictEqual(replyCount, 1)
 
-        parser.execute(new Buffer('$100\r'))
-        parser.execute(new Buffer('\nabcdefghijabcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghij'))
+        parser.execute(Buffer.from('$100\r'))
+        parser.execute(Buffer.from('\nabcdefghijabcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghij'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer(
+        parser.execute(Buffer.from(
           'abcdefghij\r\n' +
           '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij\r\n' +
           '$100\r\nabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij'
         ))
         assert.strictEqual(replyCount, 3)
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij\r'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij\r'))
         assert.strictEqual(replyCount, 3)
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('\n'))
 
         assert.strictEqual(replyCount, 4, 'check reply should have been called three times')
       })
@@ -493,16 +493,16 @@ describe('parsers', function () {
           returnBuffers: false
         })
 
-        parser.execute(new Buffer('*6\r\n$100\r\nabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij'))
-        parser.execute(new Buffer('abcdefghijabcdefghijabcdefghij\r\n'))
-        parser.execute(new Buffer('+test\r'))
-        parser.execute(new Buffer('\n:100'))
-        parser.execute(new Buffer('\r\n-Error message'))
-        parser.execute(new Buffer('\r\n*1\r\n$17\r\nThe force'))
+        parser.execute(Buffer.from('*6\r\n$100\r\nabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij'))
+        parser.execute(Buffer.from('abcdefghijabcdefghijabcdefghij\r\n'))
+        parser.execute(Buffer.from('+test\r'))
+        parser.execute(Buffer.from('\n:100'))
+        parser.execute(Buffer.from('\r\n-Error message'))
+        parser.execute(Buffer.from('\r\n*1\r\n$17\r\nThe force'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer(' awakens\r\n-\r\n$5'))
+        parser.execute(Buffer.from(' awakens\r\n-\r\n$5'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -523,10 +523,10 @@ describe('parsers', function () {
         const parser = newParser({
           returnReply: checkReply
         })
-        parser.execute(new Buffer('*1\r\n*4\r\n+abcdefghijabcdefghij\r\n:100'))
-        parser.execute(new Buffer('\r\n$10\r\n1234567890\r\n:100'))
+        parser.execute(Buffer.from('*1\r\n*4\r\n+abcdefghijabcdefghij\r\n:100'))
+        parser.execute(Buffer.from('\r\n$10\r\n1234567890\r\n:100'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -539,10 +539,10 @@ describe('parsers', function () {
           returnError: checkReply
         })
 
-        parser.execute(new Buffer('-Error '))
-        parser.execute(new Buffer('message\r\n*3\r\n$17\r\nThe force'))
+        parser.execute(Buffer.from('-Error '))
+        parser.execute(Buffer.from('message\r\n*3\r\n$17\r\nThe force'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer(' awakens\r\n$5'))
+        parser.execute(Buffer.from(' awakens\r\n$5'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -553,11 +553,11 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer('$-1\r\n*-'))
+        parser.execute(Buffer.from('$-1\r\n*-'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('1'))
+        parser.execute(Buffer.from('1'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\r\n$-'))
+        parser.execute(Buffer.from('\r\n$-'))
         assert.strictEqual(replyCount, 2)
       })
 
@@ -568,12 +568,12 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer(':'))
+        parser.execute(Buffer.from(':'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('1'))
-        parser.execute(new Buffer('\r'))
+        parser.execute(Buffer.from('1'))
+        parser.execute(Buffer.from('\r'))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('\n'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -584,13 +584,13 @@ describe('parsers', function () {
         }
         const parser = newParser(checkReply)
 
-        parser.execute(new Buffer(':1\r\n:'))
+        parser.execute(Buffer.from(':1\r\n:'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('1'))
+        parser.execute(Buffer.from('1'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\r'))
+        parser.execute(Buffer.from('\r'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('\n'))
         assert.strictEqual(replyCount, 2)
       })
 
@@ -600,19 +600,19 @@ describe('parsers', function () {
             reply = reply[0]
           }
           assert(Buffer.isBuffer(reply))
-          assert.strictEqual(reply.inspect(), new Buffer('test').inspect())
+          assert.strictEqual(reply.inspect(), Buffer.from('test').inspect())
           replyCount++
         }
         const parser = newParser(checkReply, 'buffer')
 
-        parser.execute(new Buffer('+test\r\n'))
+        parser.execute(Buffer.from('+test\r\n'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('$4\r\ntest\r'))
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('$4\r\ntest\r'))
+        parser.execute(Buffer.from('\n'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('*1\r\n$4\r\nte'))
-        parser.execute(new Buffer('st\r'))
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('*1\r\n$4\r\nte'))
+        parser.execute(Buffer.from('st\r'))
+        parser.execute(Buffer.from('\n'))
         assert.strictEqual(replyCount, 3)
       })
 
@@ -623,11 +623,11 @@ describe('parsers', function () {
           replyCount++
         }
         const parser = newParser(checkReply)
-        parser.execute(new Buffer('$10\r\ntest '))
+        parser.execute(Buffer.from('$10\r\ntest '))
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('test \r\n$20\r\ntest test test test \r\n:1234\r'))
+        parser.execute(Buffer.from('test \r\n$20\r\ntest test test test \r\n:1234\r'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('\n'))
+        parser.execute(Buffer.from('\n'))
         assert.strictEqual(replyCount, 3)
       })
 
@@ -645,7 +645,7 @@ describe('parsers', function () {
           returnReply: checkReply,
           stringNumbers: true
         })
-        parser.execute(new Buffer(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
+        parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
         assert.strictEqual(replyCount, 6)
       })
 
@@ -656,9 +656,9 @@ describe('parsers', function () {
           replyCount++
         }
         const parser = newParser(checkReply)
-        parser.execute(new Buffer(':' + number + '\r\n'))
+        parser.execute(Buffer.from(':' + number + '\r\n'))
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer(':' + number + '\r\n'))
+        parser.execute(Buffer.from(':' + number + '\r\n'))
         assert.strictEqual(replyCount, 2)
       })
 
@@ -671,18 +671,18 @@ describe('parsers', function () {
           replyCount++
         }
         const parser = newParser(checkReply, 'buffer')
-        parser.execute(new Buffer('+test'))
+        parser.execute(Buffer.from('+test'))
         assert.strictEqual(replyCount, 0)
         createBufferOfSize(parser, 128 * 1024, '\r\n')
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         assert.strictEqual(replyCount, 2)
         setTimeout(function () {
-          parser.execute(new Buffer('+test'))
+          parser.execute(Buffer.from('+test'))
           assert.strictEqual(replyCount, 2)
           chunks = createBufferOfSize(parser, 256 * 1024, '\r\n')
           assert.strictEqual(replyCount, 3)
-          parser.execute(new Buffer('\r\n'))
+          parser.execute(Buffer.from('\r\n'))
           assert.strictEqual(replyCount, 4)
         }, 20)
         // Delay done so the bufferPool is cleared and tested
@@ -702,7 +702,7 @@ describe('parsers', function () {
         const parser = newParser(checkReply)
         createBufferOfSize(parser, 4 * 1024 * 1024)
         assert.strictEqual(replyCount, 0)
-        parser.execute(new Buffer('\r\n'))
+        parser.execute(Buffer.from('\r\n'))
         assert.strictEqual(replyCount, 1)
       })
 
@@ -719,11 +719,11 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 0)
         createBufferOfSize(parser, size * 2, '\r\n')
         assert.strictEqual(replyCount, 1)
-        parser.execute(new Buffer('\r\n+hello world'))
+        parser.execute(Buffer.from('\r\n+hello world'))
         assert.strictEqual(replyCount, 2)
-        parser.execute(new Buffer('\r\n$11\r\nhuge'))
+        parser.execute(Buffer.from('\r\n$11\r\nhuge'))
         setTimeout(function () {
-          parser.execute(new Buffer(' buffer\r\n'))
+          parser.execute(Buffer.from(' buffer\r\n'))
           assert.strictEqual(replyCount, 4)
           done()
         }, 60)
