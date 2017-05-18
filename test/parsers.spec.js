@@ -195,7 +195,7 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 6)
         parser.execute(Buffer.from('$-5'))
         assert.strictEqual(replyCount, 6)
-        parser.execute(Buffer.from('\r\n:12345\r\n*-\r\n*-1\r\n+t\r\n'))
+        parser.execute(Buffer.from('\r\n:12345\r\n*0\r\n*-1\r\n+t\r\n'))
         assert.strictEqual(replyCount, 11)
       })
 
