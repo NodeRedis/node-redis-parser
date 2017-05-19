@@ -5,6 +5,7 @@
 const Benchmark = require('benchmark')
 const suite = new Benchmark.Suite()
 const Parser = require('./../')
+const Buffer = require('safe-buffer').Buffer
 const HiredisParser = require('../test/hiredis')
 
 function returnError (error) {}
