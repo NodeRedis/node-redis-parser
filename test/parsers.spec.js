@@ -7,9 +7,10 @@ const assert = require('assert')
 const util = require('util')
 const JavascriptParser = require('../')
 const HiredisParser = require('./hiredis')
-const ReplyError = JavascriptParser.ReplyError
-const ParserError = JavascriptParser.ParserError
-const RedisError = JavascriptParser.RedisError
+const errors = require('redis-errors')
+const ReplyError = errors.ReplyError
+const ParserError = errors.ParserError
+const RedisError = errors.RedisError
 const parsers = [HiredisParser, JavascriptParser]
 
 // Mock the not needed return functions
