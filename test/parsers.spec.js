@@ -69,8 +69,8 @@ describe('parsers', function () {
       parser.execute(Buffer.from('+test'))
       parser.setReturnBuffers(true)
       assert.strictEqual(replyCount, 1)
-      parser.execute(Buffer.from('\r\n'))
-      assert.strictEqual(replyCount, 2)
+      parser.execute(Buffer.from('\r\n$4\r\ntest\r\n'))
+      assert.strictEqual(replyCount, 3)
     })
 
     it('reset returnBuffers option with wrong input', function () {
