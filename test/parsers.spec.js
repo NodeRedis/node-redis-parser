@@ -5,6 +5,7 @@
 
 const assert = require('assert')
 const util = require('util')
+const Buffer = require('safe-buffer').Buffer
 const JavascriptParser = require('../')
 const HiredisParser = require('./hiredis')
 const errors = require('redis-errors')
