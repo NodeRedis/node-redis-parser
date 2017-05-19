@@ -1,8 +1,9 @@
 'use strict'
 
 const hiredis = require('hiredis')
-const ReplyError = require('../lib/replyError')
-const ParserError = require('../lib/parserError')
+const errors = require('redis-errors')
+const ReplyError = errors.ReplyError
+const ParserError = errors.ParserError
 
 /**
  * Parse data
