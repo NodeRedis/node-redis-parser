@@ -30,8 +30,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "redis-errors": "^1.0.0",
-    "safe-buffer": "^5.0.1"
+    "redis-errors": "^1.0.0"
   },
   "devDependencies": {
     "benchmark": "^2.1.0",

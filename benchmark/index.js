@@ -5,7 +5,7 @@
 const Benchmark = require('benchmark')
 const suite = new Benchmark.Suite()
 const Parser = require('./../')
-const Buffer = require('safe-buffer').Buffer
+const Buffer = require('buffer').Buffer
 const HiredisParser = require('../test/hiredis')
 
 function returnError (error) {}
@@ -47,7 +47,7 @@ for (i = 0; i < bigArraySize; i++) {
   // A chunk has a maximum size of 2^16 bytes.
   size = 65000 + i
   if (i % 2) {
-    // The "x" in the beginning is important to prevent benchmark manipulation due to a minor jsparser optimization
+    // The "x" in the beginning is important to prevent benchmark manipulation due to a minor JSParser optimization
     bigArrayChunks.push(Buffer.from('x\r\n$' + size + '\r\n' + Array(size + 1).join('a') + '\r\n:' + (Math.random() * 1000000 | 0)))
   } else {
     bigArrayChunks.push(Buffer.from('\r\n+this is some short text about nothing\r\n:' + size + '\r\n$' + size + '\r\n' + Array(size).join('b')))
