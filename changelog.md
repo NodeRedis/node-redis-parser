@@ -1,4 +1,6 @@
-## v.3.0.0 - 19 May, 2017
+# Changelog
+
+## v.3.0.0 - 25 May, 2017
 
 Breaking Changes
 

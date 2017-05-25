@@ -1,6 +1,6 @@
 {
   "name": "redis-parser",
-  "version": "2.6.0",
+  "version": "3.0.0",
   "description": "Javascript Redis protocol (RESP) parser",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "hiredis"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=4"
   },
   "dependencies": {
     "redis-errors": "^1.0.0"
