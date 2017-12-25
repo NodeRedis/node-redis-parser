@@ -26,6 +26,10 @@
     "resp",
     "hiredis"
   ],
+  "files": [
+    "index.js",
+    "lib"
+  ],
   "engines": {
     "node": ">=4"
   },
