@@ -115,50 +115,50 @@ The parser is highly optimized but there may still be further optimizations poss
 
 Currently the benchmark compares the performance against the hiredis parser:
 
-    HIREDIS:   $ multiple chunks in a bulk string x 994,387 ops/sec ±0.22% (554 runs sampled)
-    JS PARSER: $ multiple chunks in a bulk string x 1,010,728 ops/sec ±0.28% (559 runs sampled)
-    HIREDIS BUF:   $ multiple chunks in a bulk string x 648,742 ops/sec ±0.80% (526 runs sampled)
-    JS PARSER BUF: $ multiple chunks in a bulk string x 1,728,849 ops/sec ±0.41% (555 runs sampled)
+    HIREDIS:   $ multiple chunks in a bulk string x 1,169,386 ops/sec ±1.24% (92 runs sampled)
+    JS PARSER: $ multiple chunks in a bulk string x 1,354,290 ops/sec ±1.69% (88 runs sampled)
+    HIREDIS BUF:   $ multiple chunks in a bulk string x 633,639 ops/sec ±2.64% (84 runs sampled)
+    JS PARSER BUF: $ multiple chunks in a bulk string x 1,783,922 ops/sec ±0.47% (94 runs sampled)
 
-    HIREDIS:   + multiple chunks in a string x 1,861,132 ops/sec ±0.18% (564 runs sampled)
-    JS PARSER: + multiple chunks in a string x 2,131,892 ops/sec ±0.31% (558 runs sampled)
-    HIREDIS BUF:   + multiple chunks in a string x 965,132 ops/sec ±0.58% (521 runs sampled)
-    JS PARSER BUF: + multiple chunks in a string x 2,304,482 ops/sec ±0.31% (559 runs sampled)
+    HIREDIS:   + multiple chunks in a string x 2,394,900 ops/sec ±0.31% (93 runs sampled)
+    JS PARSER: + multiple chunks in a string x 2,264,354 ops/sec ±0.29% (94 runs sampled)
+    HIREDIS BUF:   + multiple chunks in a string x 953,733 ops/sec ±2.03% (82 runs sampled)
+    JS PARSER BUF: + multiple chunks in a string x 2,298,458 ops/sec ±0.79% (96 runs sampled)
 
-    HIREDIS:   $ 4mb bulk string x 269 ops/sec ±0.56% (452 runs sampled)
-    JS PARSER: $ 4mb bulk string x 763 ops/sec ±0.25% (466 runs sampled)
-    HIREDIS BUF:   $ 4mb bulk string x 336 ops/sec ±0.59% (459 runs sampled)
-    JS PARSER BUF: $ 4mb bulk string x 994 ops/sec ±0.36% (482 runs sampled)
+    HIREDIS:   $ 4mb bulk string x 152 ops/sec ±2.03% (72 runs sampled)
+    JS PARSER: $ 4mb bulk string x 971 ops/sec ±0.79% (86 runs sampled)
+    HIREDIS BUF:   $ 4mb bulk string x 169 ops/sec ±2.25% (71 runs sampled)
+    JS PARSER BUF: $ 4mb bulk string x 797 ops/sec ±7.08% (77 runs sampled)
 
-    HIREDIS:   + simple string x 2,504,305 ops/sec ±0.19% (563 runs sampled)
-    JS PARSER: + simple string x 5,121,952 ops/sec ±0.30% (560 runs sampled)
-    HIREDIS BUF:   + simple string x 1,122,899 ops/sec ±0.52% (516 runs sampled)
-    JS PARSER BUF: + simple string x 5,907,323 ops/sec ±0.23% (562 runs sampled)
+    HIREDIS:   + simple string x 3,341,956 ops/sec ±1.01% (94 runs sampled)
+    JS PARSER: + simple string x 5,979,545 ops/sec ±0.38% (96 runs sampled)
+    HIREDIS BUF: + simple string x 1,031,745 ops/sec ±2.17% (76 runs sampled)
+    JS PARSER BUF: + simple string x 6,960,184 ops/sec ±0.28% (93 runs sampled)
 
-    HIREDIS:   : integer x 2,461,376 ops/sec ±0.14% (561 runs sampled)
-    JS PARSER: : integer x 18,543,688 ops/sec ±0.19% (539 runs sampled)
-    JS PARSER STR: : integer x 14,149,305 ops/sec ±0.24% (561 runs sampled)
+    HIREDIS:   : integer x 3,897,626 ops/sec ±0.42% (91 runs sampled)
+    JS PARSER: : integer x 37,035,812 ops/sec ±0.32% (94 runs sampled)
+    JS PARSER STR: : integer x 25,515,070 ops/sec ±1.79% (83 runs sampled)
 
-    HIREDIS:   : big integer x 2,114,270 ops/sec ±0.15% (561 runs sampled)
-    JS PARSER: : big integer x 10,794,439 ops/sec ±0.25% (560 runs sampled)
-    JS PARSER STR: : big integer x 4,594,807 ops/sec ±0.24% (558 runs sampled)
+    HIREDIS:   : big integer x 3,036,704 ops/sec ±0.47% (92 runs sampled)
+    JS PARSER: : big integer x 10,616,464 ops/sec ±0.94% (94 runs sampled)
+    JS PARSER STR: : big integer x 7,098,146 ops/sec ±0.47% (94 runs sampled)
 
-    HIREDIS:   * array x 45,597 ops/sec ±0.23% (565 runs sampled)
-    JS PARSER: * array x 68,396 ops/sec ±0.30% (563 runs sampled)
-    HIREDIS BUF:   * array x 14,726 ops/sec ±0.39% (498 runs sampled)
-    JS PARSER BUF: * array x 80,961 ops/sec ±0.25% (561 runs sampled)
+    HIREDIS:   * array x 51,542 ops/sec ±0.35% (94 runs sampled)
+    JS PARSER: * array x 87,090 ops/sec ±2.17% (94 runs sampled)
+    HIREDIS BUF:   * array x 11,733 ops/sec ±1.80% (80 runs sampled)
+    JS PARSER BUF: * array x 149,430 ops/sec ±1.50% (88 runs sampled)
 
-    HIREDIS:   * big nested array x 212 ops/sec ±0.17% (511 runs sampled)
-    JS PARSER: * big nested array x 243 ops/sec ±0.21% (496 runs sampled)
-    HIREDIS BUF:   * big nested array x 207 ops/sec ±0.37% (430 runs sampled)
-    JS PARSER BUF: * big nested array x 297 ops/sec ±1.10% (421 runs sampled)
+    HIREDIS:   * big nested array x 247 ops/sec ±0.93% (73 runs sampled)
+    JS PARSER: * big nested array x 286 ops/sec ±0.79% (83 runs sampled)
+    HIREDIS BUF:   * big nested array x 217 ops/sec ±1.80% (73 runs sampled)
+    JS PARSER BUF: * big nested array x 175 ops/sec ±2.49% (37 runs sampled)
 
-    HIREDIS:   - error x 168,761 ops/sec ±0.28% (559 runs sampled)
-    JS PARSER: - error x 424,257 ops/sec ±0.28% (557 runs sampled)
+    HIREDIS:   - error x 108,110 ops/sec ±0.63% (84 runs sampled)
+    JS PARSER: - error x 172,665 ops/sec ±0.57% (85 runs sampled)
 
     Platform info:
-    Ubuntu 17.04
-    Node.js 7.10.0
+    OSX 10.12.6
+    Node.js 10.0.0
     Intel(R) Core(TM) i7-5600U CPU
 
 ## License
