@@ -2,6 +2,7 @@
 
 /* eslint-env mocha */
 /* eslint-disable no-new */
+/* global BigInt */
 
 const assert = require('assert')
 const util = require('util')
@@ -111,6 +112,17 @@ describe('parsers', function () {
     })
 
     it('reset stringNumbers option with wrong input', function () {
+      assert.throws(function () {
+        new JavascriptParser({
+          returnReply: returnReply,
+          returnError: returnError,
+          stringNumbers: 0
+        })
+      }, function (err) {
+        assert.strictEqual(err.message, 'The stringNumbers argument has to be a boolean')
+        assert(err instanceof TypeError)
+        return true
+      })
       const parser = new JavascriptParser({
         returnReply: returnReply,
         returnError: returnError
@@ -122,6 +134,44 @@ describe('parsers', function () {
         assert(err instanceof TypeError)
         return true
       })
+    })
+
+    it('reset bigInt option with wrong input', function () {
+      assert.throws(function () {
+        new JavascriptParser({
+          returnReply: returnReply,
+          returnError: returnError,
+          bigInt: 0
+        })
+      }, function (err) {
+        assert.strictEqual(err.message, 'The bigInt argument has to be a boolean')
+        assert(err instanceof TypeError)
+        return true
+      })
+      const parser = new JavascriptParser({
+        returnReply: returnReply,
+        returnError: returnError
+      })
+      assert.throws(function () {
+        parser.setBigInt(null)
+      }, function (err) {
+        assert.strictEqual(err.message, 'The bigInt argument has to be a boolean')
+        assert(err instanceof TypeError)
+        return true
+      })
+      if (/^v[0-9]\./.test(process.version)) {
+        assert.throws(function () {
+          new JavascriptParser({
+            returnReply: returnReply,
+            returnError: returnError,
+            bigInt: true
+          })
+        }, function (err) {
+          assert.strictEqual(err.message, 'BigInt is not supported for Node.js < v10.x')
+          assert.strictEqual(err.name, 'Error')
+          return true
+        })
+      }
     })
   })
 
@@ -169,6 +219,57 @@ describe('parsers', function () {
         replyCount = 0
       })
 
+      it('return numbers as bigint', function () {
+        if (Parser.name === 'HiredisReplyParser' || /^v[0-9]\./.test(process.version)) {
+          return this.skip()
+        }
+        const entries = [
+          BigInt(123),
+          BigInt('590295810358705700002'),
+          BigInt('99999999999999999'),
+          BigInt(4294967290),
+          BigInt('90071992547409920'),
+          BigInt('10000040000000000000000000000000000000020')
+        ]
+        function checkReply (reply) {
+          assert.strictEqual(typeof reply, 'bigint')
+          assert.strictEqual(reply, entries[replyCount])
+          replyCount++
+        }
+        const parser = newParser({
+          returnReply: checkReply,
+          bigInt: true
+        })
+        parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
+        assert.strictEqual(replyCount, 6)
+      })
+
+      it('stringNumbers and bigInt options can not be used at the same time', function () {
+        if (Parser.name === 'HiredisReplyParser') {
+          return this.skip()
+        }
+        assert.throws(() => newParser({
+          returnReply () {},
+          bigInt: true,
+          stringNumbers: true
+        }), function (err) {
+          assert.strictEqual(err.message, '`bigInt` can not be used in combination with the `stringNumbers` option')
+          assert(err instanceof TypeError)
+          return true
+        })
+        const parser = newParser({
+          returnReply () {},
+          bigInt: true
+        })
+        assert.throws(
+          () => parser.setStringNumbers(true),
+          function (err) {
+            assert.strictEqual(err.message, '`stringNumbers` can not be used in combination with the `bigInt` option')
+            assert(err instanceof TypeError)
+            return true
+          })
+      })
+
       it('reset parser', function () {
         function checkReply (reply) {
           assert.strictEqual(reply, 'test')
@@ -183,9 +284,13 @@ describe('parsers', function () {
 
       it('weird things', function () {
         var replyCount = 0
-        var results = [[], '', [0, null, '', 0, '', []], 9223372036854776, '☃', [1, 'OK', null], null, 12345, [], null, 't']
+        var results = [[], '', [0, null, '', -0, '', []], 9223372036854776, '☃', [1, 'OK', null], null, 12345, [], null, 't']
+        // Normalize output. The Hiredis parser does not parse `:-0\r\n` correctly as `-0`.
+        if (Parser.name === 'HiredisReplyParser') {
+          results[2][3] = 0
+        }
         function checkReply (reply) {
-          assert.deepEqual(results[replyCount], reply)
+          assert.deepStrictEqual(reply, results[replyCount])
           replyCount++
         }
         var parser = newParser(checkReply)
@@ -237,7 +342,7 @@ describe('parsers', function () {
       it('multiple parsers do not interfere with bulk strings in arrays', function () {
         const results = [['foo', 'foo bar baz'], [1234567890, 'hello world', 'the end'], 'ttttttttttttttttttttttttttttttttttttttttttttttt']
         function checkReply (reply) {
-          assert.deepEqual(reply, results[replyCount])
+          assert.deepStrictEqual(reply, results[replyCount])
           replyCount++
         }
         const parserOne = newParser(checkReply)
@@ -260,7 +365,7 @@ describe('parsers', function () {
       it('returned buffers do not get mutated', function () {
         const results = [Buffer.from('aaaaaaaaaa'), Buffer.from('zzzzzzzzzz')]
         function checkReply (reply) {
-          assert.deepEqual(results[replyCount], reply)
+          assert.deepStrictEqual(results[replyCount], reply)
           results[replyCount] = reply
           replyCount++
         }
@@ -304,7 +409,7 @@ describe('parsers', function () {
         function Abc () {}
         Abc.prototype.checkReply = function (reply) {
           assert.strictEqual(typeof this.log, 'function')
-          assert.deepEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
+          assert.deepStrictEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
           replyCount++
         }
         Abc.prototype.log = console.log
@@ -435,7 +540,7 @@ describe('parsers', function () {
 
       it('line breaks in the beginning of the last chunk', function () {
         function checkReply (reply) {
-          assert.deepEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
+          assert.deepStrictEqual(reply, [['a']], 'Expecting multi-bulk reply of [["a"]]')
           replyCount++
         }
         const parser = newParser(checkReply)

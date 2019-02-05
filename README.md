@@ -4,7 +4,10 @@
 
 # redis-parser
 
-A high performance javascript redis parser built for [node_redis](https://github.com/NodeRedis/node_redis) and [ioredis](https://github.com/luin/ioredis). Parses all [RESP](http://redis.io/topics/protocol) data.
+A high performance javascript redis parser built for
+[node_redis](https://github.com/NodeRedis/node_redis) and
+[ioredis](https://github.com/luin/ioredis). Parses all
+[RESP](http://redis.io/topics/protocol) data.
 
 ## Install
 
@@ -24,15 +27,21 @@ const myParser = new Parser(options);
 
 * `returnReply`: *function*; mandatory
 * `returnError`: *function*; mandatory
+* `returnPush`: *function*; mandatory
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
 * `stringNumbers`: *boolean*; optional, defaults to false
+* `bigInt`: *boolean*; optional, defaults to false
 
 ### Functions
 
 * `reset()`: reset the parser to it's initial state
-* `setReturnBuffers(boolean)`: set the returnBuffers option on/off without resetting the parser
-* `setStringNumbers(boolean)`: set the stringNumbers option on/off without resetting the parser
+* `setReturnBuffers(boolean)`: set the returnBuffers option on/off without
+  resetting the parser
+* `setStringNumbers(boolean)`: set the stringNumbers option on/off without
+  resetting the parser
+* `setBigInt(boolean)`: set the bigInt option on/off without
+  resetting the parser
 
 ### Error classes
 
@@ -40,7 +49,8 @@ const myParser = new Parser(options);
 * `ReplyError` sub class of RedisError
 * `ParserError` sub class of RedisError
 
-All Redis errors will be returned as `ReplyErrors` while a parser error is returned as `ParserError`.  
+All Redis errors will be returned as `ReplyErrors` while a parser error is
+returned as `ParserError`.
 All error classes can be imported by the npm `redis-errors` package.
 
 ### Example
@@ -78,11 +88,17 @@ const parser = new Parser({
 });
 ```
 
-You do not have to use the returnFatalError function. Fatal errors will be returned in the normal error function in that case.
+You do not have to use the returnFatalError function. Fatal errors will be
+returned in the normal error function in that case.
 
-And if you want to return buffers instead of strings, you can do this by adding the `returnBuffers` option.
+And if you want to return buffers instead of strings, you can do this by adding
+the `returnBuffers` option.
 
-If you handle with big numbers that are to large for JS (Number.MAX_SAFE_INTEGER === 2^53 - 16) please use the `stringNumbers` option. That way all numbers are going to be returned as String and you can handle them safely.
+If you handle with big numbers that are to large for JS (Number.MAX_SAFE_INTEGER
+=== 2^53 - 16) please use the `bigInt` or the `stringNumbers` option. That way
+all numbers are going to be returned as bigint or string and you can handle them
+safely. `bigInt` is going to be slower than returning strings due to the extra
+conversion.
 
 ```js
 // Same functions as in the first example
@@ -95,7 +111,7 @@ const parser = new Parser({
     lib.returnError(err);
   },
   returnBuffers: true, // All strings are returned as Buffer e.g. <Buffer 48 65 6c 6c 6f>
-  stringNumbers: true // All numbers are returned as String
+  bigInt: true // All numbers are returned as BigInt
 });
 
 // The streamHandler as above
@@ -103,7 +119,14 @@ const parser = new Parser({
 
 ## Protocol errors
 
-To handle protocol errors (this is very unlikely to happen) gracefully you should add the returnFatalError option, reject any still running command (they might have been processed properly but the reply is just wrong), destroy the socket and reconnect. Note that while doing this no new command may be added, so all new commands have to be buffered in the meantime, otherwise a chunk might still contain partial data of a following command that was already processed properly but answered in the same chunk as the command that resulted in the protocol error.
+To handle protocol errors (this is very unlikely to happen) gracefully you
+should add the returnFatalError option, reject any still running command (they
+might have been processed properly but the reply is just wrong), destroy the
+socket and reconnect. Note that while doing this no new command may be added, so
+all new commands have to be buffered in the meantime, otherwise a chunk might
+still contain partial data of a following command that was already processed
+properly but answered in the same chunk as the command that resulted in the
+protocol error.
 
 ## Contribute
 
