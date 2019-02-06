@@ -1,6 +1,6 @@
 # Changelog
 
-## v.3.1.0 - xx Feb, 2019
+## v.4.0.0 - xx Feb, 2019
 
 This is a huge release as the new RESP3 spec is now fully supported. The
 implementation for `Map`, `Set` and `Double` still need some polishing
