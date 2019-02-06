@@ -6,7 +6,6 @@ const Benchmark = require('benchmark')
 const suite = new Benchmark.Suite()
 const Parser = require('./../')
 const Buffer = require('buffer').Buffer
-const HiredisParser = require('../test/hiredis')
 
 function returnError (error) {}
 function checkReply (error, res) {}
@@ -64,11 +63,9 @@ const options = {
   returnFatalError: returnError
 }
 const parser = new Parser(options)
-const parserHiRedis = new HiredisParser(options)
 
 options.returnBuffers = true
 const parserBuffer = new Parser(options)
-const parserHiRedisBuffer = new HiredisParser(options)
 
 options.stringNumbers = true
 const parserStr = new Parser(options)
@@ -77,169 +74,77 @@ delete options.stringNumbers
 options.bigInt = true
 const parserBigInt = new Parser(options)
 
-const runHiredis = process.argv.length === 2 || process.argv.includes('hiredis')
-const runJS = process.argv.length === 2 || process.argv.includes('js')
 const runBigInt = process.argv.length === 2 || process.argv.includes('bigint')
 
 // BULK STRINGS
 
-if (runHiredis) {
-  suite.add('HIREDIS:   $ multiple chunks in a bulk string', function () {
-    parserHiRedis.execute(startBuffer)
-    parserHiRedis.execute(chunkBuffer)
-    parserHiRedis.execute(chunkBuffer)
-    parserHiRedis.execute(chunkBuffer)
-    parserHiRedis.execute(endBuffer)
-  })
-}
+suite.add('JS PARSER: $ multiple chunks in a bulk string', function () {
+  parser.execute(startBuffer)
+  parser.execute(chunkBuffer)
+  parser.execute(chunkBuffer)
+  parser.execute(chunkBuffer)
+  parser.execute(endBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: $ multiple chunks in a bulk string', function () {
-    parser.execute(startBuffer)
-    parser.execute(chunkBuffer)
-    parser.execute(chunkBuffer)
-    parser.execute(chunkBuffer)
-    parser.execute(endBuffer)
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF:   $ multiple chunks in a bulk string', function () {
-    parserHiRedisBuffer.execute(startBuffer)
-    parserHiRedisBuffer.execute(chunkBuffer)
-    parserHiRedisBuffer.execute(chunkBuffer)
-    parserHiRedisBuffer.execute(chunkBuffer)
-    parserHiRedisBuffer.execute(endBuffer)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: $ multiple chunks in a bulk string', function () {
-    parserBuffer.execute(startBuffer)
-    parserBuffer.execute(chunkBuffer)
-    parserBuffer.execute(chunkBuffer)
-    parserBuffer.execute(chunkBuffer)
-    parserBuffer.execute(endBuffer)
-  })
-}
+suite.add('JS PARSER BUF: $ multiple chunks in a bulk string', function () {
+  parserBuffer.execute(startBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(chunkBuffer)
+  parserBuffer.execute(endBuffer)
+})
 
 // CHUNKED STRINGS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   + multiple chunks in a string', function () {
-    parserHiRedis.execute(chunkedStringPart1)
-    parserHiRedis.execute(chunkedStringPart2)
-  })
-}
+suite.add('JS PARSER: + multiple chunks in a string', function () {
+  parser.execute(chunkedStringPart1)
+  parser.execute(chunkedStringPart2)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: + multiple chunks in a string', function () {
-    parser.execute(chunkedStringPart1)
-    parser.execute(chunkedStringPart2)
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF:   + multiple chunks in a string', function () {
-    parserHiRedisBuffer.execute(chunkedStringPart1)
-    parserHiRedisBuffer.execute(chunkedStringPart2)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: + multiple chunks in a string', function () {
-    parserBuffer.execute(chunkedStringPart1)
-    parserBuffer.execute(chunkedStringPart2)
-  })
-}
+suite.add('JS PARSER BUF: + multiple chunks in a string', function () {
+  parserBuffer.execute(chunkedStringPart1)
+  parserBuffer.execute(chunkedStringPart2)
+})
 
 // BIG BULK STRING
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   $ 4mb bulk string', function () {
-    parserHiRedis.execute(startBigBuffer)
-    for (var i = 0; i < 64; i++) {
-      parserHiRedis.execute(chunks[i])
-    }
-    parserHiRedis.execute(endBuffer)
-  })
-}
+suite.add('JS PARSER: $ 4mb bulk string', function () {
+  parser.execute(startBigBuffer)
+  for (var i = 0; i < 64; i++) {
+    parser.execute(chunks[i])
+  }
+  parser.execute(endBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: $ 4mb bulk string', function () {
-    parser.execute(startBigBuffer)
-    for (var i = 0; i < 64; i++) {
-      parser.execute(chunks[i])
-    }
-    parser.execute(endBuffer)
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF:   $ 4mb bulk string', function () {
-    parserHiRedisBuffer.execute(startBigBuffer)
-    for (var i = 0; i < 64; i++) {
-      parserHiRedisBuffer.execute(chunks[i])
-    }
-    parserHiRedisBuffer.execute(endBuffer)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: $ 4mb bulk string', function () {
-    parserBuffer.execute(startBigBuffer)
-    for (var i = 0; i < 64; i++) {
-      parserBuffer.execute(chunks[i])
-    }
-    parserBuffer.execute(endBuffer)
-  })
-}
+suite.add('JS PARSER BUF: $ 4mb bulk string', function () {
+  parserBuffer.execute(startBigBuffer)
+  for (var i = 0; i < 64; i++) {
+    parserBuffer.execute(chunks[i])
+  }
+  parserBuffer.execute(endBuffer)
+})
 
 // STRINGS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   + simple string', function () {
-    parserHiRedis.execute(stringBuffer)
-  })
-}
+suite.add('JS PARSER: + simple string', function () {
+  parser.execute(stringBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: + simple string', function () {
-    parser.execute(stringBuffer)
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF: + simple string', function () {
-    parserHiRedisBuffer.execute(stringBuffer)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: + simple string', function () {
-    parserBuffer.execute(stringBuffer)
-  })
-}
+suite.add('JS PARSER BUF: + simple string', function () {
+  parserBuffer.execute(stringBuffer)
+})
 
 // INTEGERS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   : integer', function () {
-    parserHiRedis.execute(integerBuffer)
-  })
-}
+suite.add('JS PARSER: : integer', function () {
+  parser.execute(integerBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: : integer', function () {
-    parser.execute(integerBuffer)
-  })
+suite.add('JS PARSER STR: : integer', function () {
+  parserStr.execute(integerBuffer)
+})
 
-  suite.add('JS PARSER STR: : integer', function () {
-    parserStr.execute(integerBuffer)
-  })
-}
-
-if (runBigInt || runJS) {
+if (runBigInt) {
   suite.add('JS PARSER BIGINT: : integer', function () {
     parserBigInt.execute(integerBuffer)
   })
@@ -247,23 +152,15 @@ if (runBigInt || runJS) {
 
 // BIG INTEGER
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   : big integer', function () {
-    parserHiRedis.execute(bigIntegerBuffer)
-  })
-}
+suite.add('JS PARSER: : big integer', function () {
+  parser.execute(bigIntegerBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: : big integer', function () {
-    parser.execute(bigIntegerBuffer)
-  })
+suite.add('JS PARSER STR: : big integer', function () {
+  parserStr.execute(bigIntegerBuffer)
+})
 
-  suite.add('JS PARSER STR: : big integer', function () {
-    parserStr.execute(bigIntegerBuffer)
-  })
-}
-
-if (runBigInt || runJS) {
+if (runBigInt) {
   suite.add('JS PARSER BIGINT: : big integer', function () {
     parserBigInt.execute(bigIntegerBuffer)
   })
@@ -271,77 +168,33 @@ if (runBigInt || runJS) {
 
 // ARRAYS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   * array', function () {
-    parserHiRedis.execute(arrayBuffer)
-  })
-}
+suite.add('JS PARSER: * array', function () {
+  parser.execute(arrayBuffer)
+})
 
-if (runJS) {
-  suite.add('JS PARSER: * array', function () {
-    parser.execute(arrayBuffer)
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF:   * array', function () {
-    parserHiRedisBuffer.execute(arrayBuffer)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: * array', function () {
-    parserBuffer.execute(arrayBuffer)
-  })
-}
+suite.add('JS PARSER BUF: * array', function () {
+  parserBuffer.execute(arrayBuffer)
+})
 
 // BIG NESTED ARRAYS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   * big nested array', function () {
-    for (var i = 0; i < bigArrayChunks.length; i++) {
-      parserHiRedis.execute(bigArrayChunks[i])
-    }
-  })
-}
+suite.add('JS PARSER: * big nested array', function () {
+  for (var i = 0; i < bigArrayChunks.length; i++) {
+    parser.execute(bigArrayChunks[i])
+  }
+})
 
-if (runJS) {
-  suite.add('JS PARSER: * big nested array', function () {
-    for (var i = 0; i < bigArrayChunks.length; i++) {
-      parser.execute(bigArrayChunks[i])
-    }
-  })
-}
-
-if (runHiredis) {
-  suite.add('HIREDIS BUF:   * big nested array', function () {
-    for (var i = 0; i < bigArrayChunks.length; i++) {
-      parserHiRedisBuffer.execute(bigArrayChunks[i])
-    }
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER BUF: * big nested array', function () {
-    for (var i = 0; i < bigArrayChunks.length; i++) {
-      parserBuffer.execute(bigArrayChunks[i])
-    }
-  })
-}
+suite.add('JS PARSER BUF: * big nested array', function () {
+  for (var i = 0; i < bigArrayChunks.length; i++) {
+    parserBuffer.execute(bigArrayChunks[i])
+  }
+})
 
 // ERRORS
 
-if (runHiredis) {
-  suite.add('\nHIREDIS:   - error', function () {
-    parserHiRedis.execute(errorBuffer)
-  })
-}
-
-if (runJS) {
-  suite.add('JS PARSER: - error', function () {
-    parser.execute(errorBuffer)
-  })
-}
+suite.add('JS PARSER: - error', function () {
+  parser.execute(errorBuffer)
+})
 
 // add listeners
 suite.on('cycle', function (event) {
