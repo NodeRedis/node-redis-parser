@@ -132,7 +132,9 @@ protocol error.
 
 ## Contribute
 
-The parser is highly optimized but there may still be further optimizations possible.
+The parser is highly optimized but there may still be further optimizations
+possible. Especially the new aggregated data types from RESP3 should have some
+optimization potential left.
 
     npm install
     npm test
