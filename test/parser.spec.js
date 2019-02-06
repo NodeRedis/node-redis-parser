@@ -120,6 +120,9 @@ describe('parsers', function () {
     })
 
     it('inspect should be minimal', function () {
+      if (/^v[0-9]\./.test(process.version)) {
+        return this.skip()
+      }
       const inspected = util.inspect(new Parser({
         returnReply,
         returnError,
