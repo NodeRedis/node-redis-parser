@@ -4,10 +4,11 @@
 
 # redis-parser
 
-A high performance javascript redis parser built for
+A high performance javascript RESP v2/v3 parser built for
 [node_redis](https://github.com/NodeRedis/node_redis) and
 [ioredis](https://github.com/luin/ioredis). Parses all
-[RESP](http://redis.io/topics/protocol) data.
+[RESP v2](http://redis.io/topics/protocol) and
+[RESP v3](https://github.com/antirez/RESP3) data.
 
 ## Install
 
@@ -27,7 +28,7 @@ const myParser = new Parser(options);
 
 * `returnReply`: *function*; mandatory
 * `returnError`: *function*; mandatory
-* `returnPush`: *function*; mandatory
+* `returnPush`: *function*; optional (mandatory for RESP3)
 * `returnFatalError`: *function*; optional, defaults to the returnError function
 * `returnBuffers`: *boolean*; optional, defaults to false
 * `stringNumbers`: *boolean*; optional, defaults to false
@@ -98,7 +99,8 @@ If you handle with big numbers that are to large for JS (Number.MAX_SAFE_INTEGER
 === 2^53 - 16) please use the `bigInt` or the `stringNumbers` option. That way
 all numbers are going to be returned as bigint or string and you can handle them
 safely. `bigInt` is going to be slower than returning strings due to the extra
-conversion.
+conversion and it only works for integers. `RESP3` also uses 64bit doubles that can
+not be represented by `bigint`.
 
 ```js
 // Same functions as in the first example
@@ -111,7 +113,7 @@ const parser = new Parser({
     lib.returnError(err);
   },
   returnBuffers: true, // All strings are returned as Buffer e.g. <Buffer 48 65 6c 6c 6f>
-  bigInt: true // All numbers are returned as BigInt
+  bigInt: true // All integers are returned as BigInt
 });
 
 // The streamHandler as above

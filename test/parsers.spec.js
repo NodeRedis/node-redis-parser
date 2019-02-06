@@ -226,10 +226,10 @@ describe('parsers', function () {
         const entries = [
           BigInt(123),
           BigInt('590295810358705700002'),
-          BigInt('99999999999999999'),
+          -BigInt('99999999999999999'),
           BigInt(4294967290),
           BigInt('90071992547409920'),
-          BigInt('10000040000000000000000000000000000000020')
+          -BigInt('10000040000000000000000000000000000000020')
         ]
         function checkReply (reply) {
           assert.strictEqual(typeof reply, 'bigint')
@@ -240,7 +240,9 @@ describe('parsers', function () {
           returnReply: checkReply,
           bigInt: true
         })
-        parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
+        parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:900719925'))
+        assert.strictEqual(replyCount, 4)
+        parser.execute(Buffer.from('47409920\r\n:-10000040000000000000000000000000000000020\r\n'))
         assert.strictEqual(replyCount, 6)
       })
 

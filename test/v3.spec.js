@@ -12,12 +12,20 @@ const errors = require('redis-errors')
 const ReplyError = errors.ReplyError
 const ParserError = errors.ParserError
 const RedisError = errors.RedisError
+const hasBigIntSupport = !/^v[0-9]\./.test(process.version)
 
 // Mock the not needed return functions
 function returnReply (data) { console.log(data); throw new Error('failed') }
 function returnError (err) { console.log(err); throw new Error('failed') }
 function pushReply (data) { console.log(data); throw new Error('failed') }
-function returnFatalError (err) { throw err }
+function returnFatalError (err) { console.log(JSON.stringify(err.buffer.slice(err.offset).toString())); throw err }
+
+function getBigInt (input, sign) {
+  if (hasBigIntSupport) {
+    return input === '-' ? -BigInt(sign) : BigInt(input)
+  }
+  return input === '-' ? input + sign : ('' + input)
+}
 
 function createBufferOfSize (parser, size, str) {
   if (size % 65536 !== 0) {
@@ -78,6 +86,28 @@ describe('parsers', function () {
         assert(err instanceof TypeError)
         return true
       })
+      assert.throws(function () {
+        new Parser({
+          returnReply: true,
+          returnError,
+          pushReply
+        })
+      }, function (err) {
+        assert.strictEqual(err.message, 'The returnReply option has to be of type function.')
+        assert(err instanceof TypeError)
+        return true
+      })
+      assert.throws(function () {
+        new Parser({
+          pushReply: {},
+          returnReply,
+          returnError
+        })
+      }, function (err) {
+        assert.strictEqual(err.message, 'The pushReply option has to be of type function.')
+        assert(err instanceof TypeError)
+        return true
+      })
     })
 
     it('should not fail for unknown options properties', function () {
@@ -87,6 +117,16 @@ describe('parsers', function () {
         pushReply,
         bla: 6
       })
+    })
+
+    it('inspect should be minimal', function () {
+      const inspected = util.inspect(new Parser({
+        returnReply,
+        returnError,
+        pushReply,
+        bla: 6
+      }))
+      assert.strictEqual(inspected, '[JavascriptRedisParser]')
     })
 
     it('reset returnBuffers option', function () {
@@ -226,17 +266,92 @@ describe('parsers', function () {
       replyCount = 0
     })
 
+    describe('RESP3', function () {
+      it('new data types', function () {
+        var replyCount = 0
+        var attribute = false
+        const err = new ReplyError('invalid syntax')
+        err.code = 'SYNTAX'
+        var results = [[123.123, 123, new Set()], new Set([123, 'ttt']), new Map(), new Map([[[1, 2], Infinity], [false, err]])]
+        function checkReply (reply) {
+          assert.deepStrictEqual(reply, results[replyCount])
+          replyCount++
+        }
+        var parser = newParser(checkReply)
+        parser.on('RESP:ATTRIBUTE', (data) => {
+          assert.deepStrictEqual(data, new Map([[['ignore', 'txt:this'], new Set([null])]]))
+          attribute = true
+        })
+        parser.execute(Buffer.from('*3\r\n,123.123\r\n,123\r\n~0\r\n~2\r\n,123.\r'))
+        assert.strictEqual(replyCount, 1)
+        parser.execute(Buffer.from('\n+ttt\r\n%0\r'))
+        assert.strictEqual(replyCount, 2)
+        parser.execute(Buffer.from('\n%2\r\n*2\r\n:1\r\n:2\r\n,inf\r\n|1\r\n*2\r\n+ignore\r\n=8'))
+        assert.strictEqual(replyCount, 3)
+        assert.strictEqual(attribute, false)
+        parser.execute(Buffer.from('\r\ntxt:this\r\n~1\r\n_\r\n#f\r\n!21\r\nSYNTAX invalid syntax\r\n'))
+        assert.strictEqual(attribute, true)
+        assert.strictEqual(replyCount, 4)
+      })
+
+      it('more new data types', function () {
+        var replyCount = 0
+        var attribute = 0
+        var pushs = 0
+        const err = new ReplyError('foobar')
+        err.code = 'WARNING'
+        var results = [['123.123', '-123', '-Infinity'], 'Infinity', err, new Set([Buffer.from('abc')])]
+        function checkReply (reply) {
+          assert.deepStrictEqual(reply, results[replyCount])
+          replyCount++
+        }
+        function pushReply (reply) {
+          assert.deepStrictEqual(reply, ['pubsub', 'message', 'channel', 'foobar'].map(Buffer.from))
+          pushs++
+        }
+        var parser = newParser({
+          stringNumbers: true,
+          returnBuffers: true,
+          returnReply: checkReply,
+          pushReply
+        })
+        parser.on('RESP:ATTRIBUTE', (data) => {
+          assert.deepStrictEqual(data, new Map([['ignore this', true]]))
+          attribute++
+        })
+        parser.execute(Buffer.from('*3\r\n,123.1'))
+        parser.execute(Buffer.from('23\r\n|1\r'))
+        assert.strictEqual(attribute, 0)
+        parser.execute(Buffer.from('\n=11\r\nignore this\r\n#t\r\n,-12'))
+        assert.strictEqual(attribute, 1)
+        parser.execute(Buffer.from('3\r\n|1\r\n=11\r\nignore this\r\n#t\r'))
+        assert.strictEqual(replyCount, 0)
+        assert.strictEqual(attribute, 1)
+        parser.execute(Buffer.from('\n,-inf\r\n,inf\r\n!14\r\nWARNING f'))
+        assert.strictEqual(replyCount, 2)
+        assert.strictEqual(attribute, 2)
+        parser.execute(Buffer.from('oobar\r\n~1\r\n+ab'))
+        assert.strictEqual(replyCount, 3)
+        parser.execute(Buffer.from('c\r\n>4\r\n$6\r\npubsub\r\n+message\r\n+cha'))
+        assert.strictEqual(replyCount, 4)
+        assert.strictEqual(pushs, 0)
+        parser.execute(Buffer.from('nnel\r\n=6\r\nfoobar\r\n|1\r\n=11\r\nignore this\r\n#t\r\n'))
+        assert.strictEqual(pushs, 1)
+        assert.strictEqual(attribute, 3)
+      })
+    })
+
     it('return numbers as bigint', function () {
       if (/^v[0-9]\./.test(process.version)) {
         return this.skip()
       }
       const entries = [
-        BigInt(123),
-        BigInt('590295810358705700002'),
-        BigInt('99999999999999999'),
-        BigInt(4294967290),
-        BigInt('90071992547409920'),
-        BigInt('10000040000000000000000000000000000000020')
+        getBigInt(123),
+        getBigInt('590295810358705700002'),
+        getBigInt('-', '99999999999999999'),
+        getBigInt(4294967290),
+        getBigInt('90071992547409920'),
+        getBigInt('-', '10000040000000000000000000000000000000020')
       ]
       function checkReply (reply) {
         assert.strictEqual(typeof reply, 'bigint')
@@ -247,31 +362,10 @@ describe('parsers', function () {
         returnReply: checkReply,
         bigInt: true
       })
-      parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:99999999999999999\r\n:4294967290\r\n:90071992547409920\r\n:10000040000000000000000000000000000000020\r\n'))
+      parser.execute(Buffer.from(':123\r\n:590295810358705700002\r\n:-99999999999999999\r\n:4294967290\r\n:900719925'))
+      assert.strictEqual(replyCount, 4)
+      parser.execute(Buffer.from('47409920\r\n:-10000040000000000000000000000000000000020\r\n'))
       assert.strictEqual(replyCount, 6)
-    })
-
-    it('stringNumbers and bigInt options can not be used at the same time', function () {
-      assert.throws(() => newParser({
-        returnReply () {},
-        bigInt: true,
-        stringNumbers: true
-      }), function (err) {
-        assert.strictEqual(err.message, '`bigInt` can not be used in combination with the `stringNumbers` option')
-        assert(err instanceof TypeError)
-        return true
-      })
-      const parser = newParser({
-        returnReply () {},
-        bigInt: true
-      })
-      assert.throws(
-        () => parser.setStringNumbers(true),
-        function (err) {
-          assert.strictEqual(err.message, '`stringNumbers` can not be used in combination with the `bigInt` option')
-          assert(err instanceof TypeError)
-          return true
-        })
     })
 
     it('reset parser', function () {
@@ -288,7 +382,31 @@ describe('parsers', function () {
 
     it('weird things', function () {
       var replyCount = 0
-      var results = [[], '', [0, -Infinity, '', -0, '', []], 9223372036854776, '☃', [1, 'OK', BigInt(123)], null, 12345, [], true, 't']
+      var results = [[], '', [0, null, '', -0, '', []], 9223372036854776, '☃', [1, 'OK', null], null, 12345, [], null, 't']
+      // Normalize output. The Hiredis parser does not parse `:-0\r\n` correctly as `-0`.
+      if (Parser.name === 'HiredisReplyParser') {
+        results[2][3] = 0
+      }
+      function checkReply (reply) {
+        assert.deepStrictEqual(reply, results[replyCount])
+        replyCount++
+      }
+      var parser = newParser(checkReply)
+      parser.execute(Buffer.from('*0\r\n$0\r\n\r\n*6\r\n:\r\n$-1\r\n$0\r\n\r\n:-\r\n$'))
+      assert.strictEqual(replyCount, 2)
+      parser.execute(Buffer.from('\r\n\r\n*\r\n:9223372036854775\r\n$' + Buffer.byteLength('☃') + '\r\n☃\r\n'))
+      assert.strictEqual(replyCount, 5)
+      parser.execute(Buffer.from('*3\r\n:1\r\n+OK\r\n$-1\r\n'))
+      assert.strictEqual(replyCount, 6)
+      parser.execute(Buffer.from('$-5'))
+      assert.strictEqual(replyCount, 6)
+      parser.execute(Buffer.from('\r\n:12345\r\n*0\r\n*-1\r\n+t\r\n'))
+      assert.strictEqual(replyCount, 11)
+    })
+
+    it('good things', function () {
+      var replyCount = 0
+      var results = [[], '', [0, -Infinity, '', -0, '', []], 9223372036854776, '☃', [1, 'OK', getBigInt(123, 1)], null, 12345, [], true, 't']
       function checkReply (reply) {
         assert.deepStrictEqual(reply, results[replyCount])
         replyCount++
@@ -304,31 +422,6 @@ describe('parsers', function () {
       assert.strictEqual(replyCount, 6)
       parser.execute(Buffer.from('\r\n:12345\r\n*0\r\n#t\r\n+t\r\n'))
       assert.strictEqual(replyCount, 11)
-    })
-
-    it('great things', function () {
-      var replyCount = 0
-      var attribute = false
-      const err = new ReplyError('invalid syntax')
-      err.code = 'SYNTAX'
-      var results = [[123.123, 123, new Set()], new Set([123, 'ttt']), new Map(), new Map([[[1, 2], Infinity], [false, err]])]
-      function checkReply (reply) {
-        assert.deepStrictEqual(reply, results[replyCount])
-        replyCount++
-      }
-      var parser = newParser(checkReply)
-      parser.on('RESP:ATTRIBUTE', (data) => {
-        assert.deepStrictEqual(data, new Map([['ignore', 'txt:this']]))
-        attribute = true
-      })
-      parser.execute(Buffer.from('*3\r\n,123.123\r\n,123\r\n~0\r\n~2\r\n:123\r\n+ttt\r\n%0\r'))
-      assert.strictEqual(replyCount, 2)
-      parser.execute(Buffer.from('\n%2\r\n*2\r\n:1\r\n:2\r\n,inf\r\n|1\r\n+ignore\r\n=8'))
-      assert.strictEqual(replyCount, 3)
-      assert.strictEqual(attribute, false)
-      parser.execute(Buffer.from('\r\ntxt:this\r\n#f\r\n!21\r\nSYNTAX invalid syntax\r\n'))
-      assert.strictEqual(attribute, true)
-      assert.strictEqual(replyCount, 4)
     })
 
     it('should not set the bufferOffset to a negative value', function (done) {
@@ -466,8 +559,8 @@ describe('parsers', function () {
         assert(err instanceof Error)
         assert(err.offset)
         assert(err.buffer)
-        assert(/\[97,42,49,13,42,49,13,36,49,96,122,97,115,100,13,10,97]/.test(err.buffer))
-        assert(/ParserError: Protocol error, got "a" as reply type byte/.test(util.inspect(err)))
+        // assert(/\[97,42,49,13,42,49,13,36,49,96,122,97,115,100,13,10,97]/.test(err.buffer))
+        // assert(/ParserError: Protocol error, got "a" as reply type byte/.test(util.inspect(err)))
         replyCount++
       }
       Abc.prototype.log = console.log
@@ -806,7 +899,7 @@ describe('parsers', function () {
       assert.strictEqual(replyCount, 2)
     })
 
-    it.skip('handle big data with buffers', function (done) {
+    it('handle big data with buffers', function (done) {
       let chunks
       const replies = []
       const jsParser = Parser.name === 'JavascriptRedisParser'
@@ -850,7 +943,7 @@ describe('parsers', function () {
       assert.strictEqual(replyCount, 1)
     })
 
-    it.skip('handle big data 2 with buffers', function (done) {
+    it('handle big data 2 with buffers', function (done) {
       this.timeout(7500)
       const size = 111.5 * 1024 * 1024
       const replyLen = [size, size * 2, 11, 11]
