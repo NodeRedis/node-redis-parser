@@ -1,7 +1,5 @@
 'use strict'
 
-/* global BigInt */
-
 const Buffer = require('buffer').Buffer
 const StringDecoder = require('string_decoder').StringDecoder
 const decoder = new StringDecoder()
@@ -125,22 +123,16 @@ function parseLength (parser) {
 /**
  * Parse a ':' redis integer response
  *
- * All numbers are returned as `bigint` if the `bigInt` option is active. If the
- * `stringNumbers` option is used, they will be returned as strings instead,
- *
+ * If stringNumbers is activated the parser always returns numbers as string
  * This is important for big numbers (number > Math.pow(2, 53)) as js numbers
- * are 64bit floating point numbers with reduced precision.
+ * are 64bit floating point numbers with reduced precision
  *
  * @param {JavascriptRedisParser} parser
- * @returns {undefined|number|string|bigint}
+ * @returns {undefined|number|string}
  */
 function parseInteger (parser) {
   if (parser.optionStringNumbers === true) {
     return parseStringNumbers(parser)
-  }
-  if (parser.optionBigInt === true) {
-    const res = parseStringNumbers(parser)
-    return res !== undefined ? BigInt(res) : undefined
   }
   return parseSimpleNumbers(parser)
 }
@@ -432,7 +424,7 @@ function concatBulkBuffer (parser) {
 class JavascriptRedisParser {
   /**
    * Javascript Redis Parser constructor
-   * @param {{returnError: Function, returnReply: Function, returnFatalError?: Function, returnBuffers?: boolean, stringNumbers?: boolean, bigInt?: boolean }} options
+   * @param {{returnError: Function, returnReply: Function, returnFatalError?: Function, returnBuffers: boolean, stringNumbers: boolean }} options
    * @constructor
    */
   constructor (options) {
@@ -442,12 +434,8 @@ class JavascriptRedisParser {
     if (typeof options.returnError !== 'function' || typeof options.returnReply !== 'function') {
       throw new TypeError('The returnReply and returnError options have to be functions.')
     }
-    this.optionReturnBuffers = false
-    if (options.returnBuffers !== undefined) this.setReturnBuffers(options.returnBuffers)
-    this.optionStringNumbers = false
-    if (options.stringNumbers !== undefined) this.setStringNumbers(options.stringNumbers)
-    this.optionsBigInt = false
-    if (options.bigInt !== undefined) this.setBigInt(options.bigInt)
+    this.setReturnBuffers(!!options.returnBuffers)
+    this.setStringNumbers(!!options.stringNumbers)
     this.returnError = options.returnError
     this.returnFatalError = options.returnFatalError || options.returnError
     this.returnReply = options.returnReply
@@ -492,30 +480,7 @@ class JavascriptRedisParser {
     if (typeof stringNumbers !== 'boolean') {
       throw new TypeError('The stringNumbers argument has to be a boolean')
     }
-    if (this.optionBigInt) {
-      throw new TypeError('`stringNumbers` can not be used in combination with the `bigInt` option')
-    }
     this.optionStringNumbers = stringNumbers
-  }
-
-  /**
-   * Set the bigInt option
-   *
-   * @param {boolean} bigInt
-   * @returns {undefined}
-   */
-  setBigInt (bigInt) {
-    if (typeof bigInt !== 'boolean') {
-      throw new TypeError('The bigInt argument has to be a boolean')
-    }
-    if (this.optionStringNumbers) {
-      throw new TypeError('`bigInt` can not be used in combination with the `stringNumbers` option')
-    }
-    /* istanbul ignore next */
-    if (/^v[0-9]\./.test(process.version)) {
-      throw new Error('BigInt is not supported for Node.js < v10.x')
-    }
-    this.optionBigInt = bigInt
   }
 
   /**
