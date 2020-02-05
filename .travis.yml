@@ -9,11 +9,12 @@ addons:
     packages:
     - g++-4.8
 node_js:
+# We do support Node.js v4 but tests are not run against it anymore since the testing frameworks do not support it anymore.
+#  - "4"
   - "6"
-  - "7"
   - "8"
-  - "9"
   - "10"
+  - "11"
 install:
   - npm install
   - npm install hiredis

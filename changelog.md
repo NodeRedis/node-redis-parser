@@ -1,5 +1,18 @@
 # Changelog
 
+## v.3.1.0 - xx Feb, 2019
+
+This is a huge release as the new RESP3 spec is now fully supported!
+
+There is still some optimization potential left for some of the new data types,
+especially `Set` and `Map`.
+
+Features
+
+- RESP 3 is now fully supported.
+- The `bigInt` option is now supported. If used, all integers will be returned as
+  bigint.
+
 ## v.3.0.0 - 25 May, 2017
 
 Breaking Changes
