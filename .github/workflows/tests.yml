@@ -1,0 +1,39 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  testing:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [6.x, 8.x, 10.x, 12.x, 13.x]
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install Packages
+        run: npm i --no-audit --prefer-offline
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Submit Coverage
+        run: npm run coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v1
+        with:
+          name: coverage
+          path: coverage
