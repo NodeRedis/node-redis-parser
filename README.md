@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/NodeRedis/node-redis-parser.png?branch=master)](https://travis-ci.org/NodeRedis/node-redis-parser)
-[![Test Coverage](https://codeclimate.com/github/NodeRedis/node-redis-parser/badges/coverage.svg)](https://codeclimate.com/github/NodeRedis/node-redis-parser/coverage)
+[![Build Status](https://github.com/NodeRedis/node-redis-parser/workflows/Tests/badge.svg](https://github.com/NodeRedis/node-redis-parser/actions?query=workflow%3ATests)
+[![Coverage Status](https://coveralls.io/repos/github/NodeRedis/node-redis-parser/badge.svg?branch=)](https://coveralls.io/github/NodeRedis/node-redis-parser?branch=master)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 # redis-parser
