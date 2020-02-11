@@ -1,4 +1,4 @@
-[![Build Status](https://github.com/NodeRedis/node-redis-parser/workflows/Tests/badge.svg](https://github.com/NodeRedis/node-redis-parser/actions?query=workflow%3ATests)
+[![Build Status](https://github.com/NodeRedis/node-redis-parser/workflows/Tests/badge.svg)](https://github.com/NodeRedis/node-redis-parser/actions)
 [![Coverage Status](https://coveralls.io/repos/github/NodeRedis/node-redis-parser/badge.svg?branch=)](https://coveralls.io/github/NodeRedis/node-redis-parser?branch=master)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
