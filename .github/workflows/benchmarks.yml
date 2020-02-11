@@ -23,16 +23,4 @@ jobs:
 
       - run: npm i --no-audit --prefer-offline
       - name: Run Benchmark
-        run: npm run benchmark > benchmark-output.txt && cat benchmark-output.txt
-      - name: Upload Benchmark Result
-        uses: actions/upload-artifact@v1
-        with:
-          name: benchmark-output.txt
-          path: benchmark-output.txt
-
-      - name: Store Node.js ${{ matrix.node-version }} benchmark result
-        uses: rhysd/github-action-benchmark@v1
-        with:
-          name: Node.js ${{ matrix.node-version }} Benchmark
-          tool: 'benchmarkjs'
-          output-file-path: benchmark-output.txt
+        run: npm run benchmark        
