@@ -40,7 +40,7 @@
     "coveralls": "^2.13.3",
     "nyc": "^14.1.1",
     "mocha": "^6.1.1",
-    "standard": "^11.0.1"
+    "standard": "^14.3.3"
   },
   "author": "Ruben Bridgewater",
   "license": "MIT",
