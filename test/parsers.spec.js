@@ -354,6 +354,38 @@ describe('parsers', function () {
         assert.strictEqual(replyCount, 1)
       })
 
+      it('invalid array length returns a parser error instead of throwing', function () {
+        let errCount = 0
+        let replyCount = 0
+        const parser = newParser({
+          returnReply: function (reply) {
+            assert.deepStrictEqual(reply, ['a'])
+            replyCount++
+          },
+          returnFatalError: function (err) {
+            assert(err instanceof ParserError)
+            assert.strictEqual(err.message, 'Protocol error, invalid array length 4294967296')
+            errCount++
+          }
+        })
+
+        parser.execute(Buffer.from('*4294967296\r\n'))
+        assert.strictEqual(errCount, 1)
+        // The parser has to be usable afterwards
+        parser.execute(Buffer.from('*1\r\n$1\r\na\r\n'))
+        assert.strictEqual(replyCount, 1)
+      })
+
+      it('array length of 2^32 - 1 is accepted', function () {
+        const parser = newParser({
+          returnFatalError: function () {
+            throw new Error('Should not be called')
+          }
+        })
+        // Only the header is sent, the parser waits for the elements
+        parser.execute(Buffer.from('*4294967295\r\n'))
+      })
+
       it('parser error resets the buffer', function () {
         let errCount = 0
         function checkReply (reply) {
